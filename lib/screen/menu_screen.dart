@@ -14,7 +14,7 @@ class HomePage extends StatelessWidget {
         children: [
           //Search Bar
           _buildSearchBar(),
-
+          
         ],
       )
     );

@@ -4,6 +4,7 @@ import 'package:food_app/screen/search_screen.dart';
 import 'package:food_app/screen/cart_screen.dart';
 import 'package:food_app/screen/profile_screen.dart';
 import 'package:food_app/bottom_nav_bar.dart';
+import 'package:food_app/screen/login_screen.dart';
 
 
 void main() {
@@ -22,7 +23,10 @@ class Main extends StatelessWidget {
         colorSchemeSeed: const Color.fromARGB(255, 85, 3, 129),
         useMaterial3: true,
       ),
-      home: const MainScreen(),
+      home: const LoginScreen(),
+      routes: {
+        '/main': (context) => const MainScreen(),
+      },
     );
   }
 }
