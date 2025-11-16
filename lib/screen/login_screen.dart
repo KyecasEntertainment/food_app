@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: Colors.white.withOpacity(0.3),
                   child: const CircleAvatar(
                     radius: 80,
-                    backgroundImage: AssetImage('assets/food.jpg'),
+                    backgroundImage: AssetImage('assets/food_images/Burgers/ClassicBurger.jpg'),
                   ),
                 ),
                 const SizedBox(height: 50),

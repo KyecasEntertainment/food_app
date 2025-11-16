@@ -331,7 +331,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        '\$${product.product_price.toStringAsFixed(2)}',
+                        '₱${product.product_price.toStringAsFixed(2)}',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
