@@ -10,7 +10,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Container(
-        padding: EdgeInsets.only(top: 20),
+        padding: EdgeInsets.only(top: 20, bottom: 20),
         child: Row(
           children: [
             Text(
