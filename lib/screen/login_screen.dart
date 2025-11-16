@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
-
-class UserAccounts{
-  final String email;
-  final String password;
-
-  UserAccounts({
-    required this.email,
-    required this.password,
-  });
-}
+import 'package:food_app/database/user_accounts.dart';
 class LoginScreen extends StatefulWidget {
 
   const LoginScreen({super.key});
@@ -26,15 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   static const double _horizontalPadding = 40.0;
   static const double _avatarOuterRadius = 90.0;
-  /* array list of login accs
-  fake login emails and password array list
-  */
-  final List<UserAccounts> accounts = [
-    UserAccounts(
-      email: "johndoe@example.com",
-      password: "12345678"
-      )
-  ];
 
   @override
   void dispose() {
@@ -162,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: Colors.white.withOpacity(0.3),
                   child: const CircleAvatar(
                     radius: 80,
-                    backgroundImage: AssetImage('assets/food.png'),
+                    backgroundImage: AssetImage('assets/food_images/Burgers/ClassicBurger.jpg'),
                   ),
                 ),
                 const SizedBox(height: 50),
