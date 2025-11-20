@@ -6,6 +6,7 @@ import 'package:food_app/screen/profile_screen.dart';
 import 'package:food_app/bottom_nav_bar.dart';
 import 'package:food_app/screen/login_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/screen/delivery_screen.dart';
 
 
 void main() {
@@ -24,10 +25,10 @@ class Main extends StatelessWidget {
         colorSchemeSeed: const Color.fromARGB(255, 85, 3, 129),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
-      routes: {
-        '/main': (context) => const MainScreen(),
-      },
+      home: const OrderTrackingPage(),
+      // routes: {
+      //   '/main': (context) => const MainScreen(),
+      // },
     );
   }
 }
