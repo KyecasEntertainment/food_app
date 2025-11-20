@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/custom_top_bar.dart';
 
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final UserAccounts? loggedInUser;
+  
+  const ProfilePage({super.key, this.loggedInUser});
 
   @override
   State<ProfilePage> createState() => _ProfilePage();
 }
 
 class _ProfilePage extends State<ProfilePage> {
-  String name = "John Doe";
-  String email = "johndoe@example.com";
-  String contact = "+639934229236";
+  late String name;
+  late String email;
+  late String contact;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.loggedInUser != null) {
+      name = widget.loggedInUser!.name;
+      email = widget.loggedInUser!.email;
+      contact = "+639934229236";
+    } else {
+      name = "John Doe";
+      email = "johndoe@example.com";
+      contact = "+639934229236";
+    }
+  }
 
   
   void _openEditBottomSheet({
@@ -77,43 +95,35 @@ class _ProfilePage extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
+      appBar: CustomAppBar(title: 'Profile', loggedInUser: widget.loggedInUser),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios),
-                    onPressed: () {},
-                  ),
-                  const Text(
-                    "Account\nInformation",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 15),
 
-              
+              // User Avatar from UserAccounts
               Center(
                 child: CircleAvatar(
                   radius: 70,
-                  backgroundImage: AssetImage("assets/profile.jpg"),
+                  backgroundColor: Colors.grey[400],
+                  backgroundImage: widget.loggedInUser != null
+                      ? AssetImage(widget.loggedInUser!.avatar)
+                      : null,
+                  child: widget.loggedInUser == null
+                      ? Icon(Icons.person, size: 70, color: Colors.white)
+                      : null,
+                  onBackgroundImageError: (exception, stackTrace) {
+                    // Handle image load error
+                  },
                 ),
               ),
 
               const SizedBox(height: 25),
 
-              
+              // Personal Information
               const Text(
                 "Personal Information",
                 style: TextStyle(
@@ -124,7 +134,7 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 10),
 
-              
+              // Name Card
               _infoCard(
                 title: "Name",
                 value: name,
@@ -139,7 +149,7 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 12),
 
-              
+              // Email Card
               _infoCard(
                 title: "Email",
                 value: email,
@@ -155,7 +165,7 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 12),
 
-              
+              // Contact Card
               _infoCard(
                 title: "Contact Number",
                 value: contact,
@@ -171,7 +181,7 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 25),
 
-              
+              // Connected Accounts
               const Text(
                 "Connected Accounts",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -179,9 +189,9 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 12),
 
-              
+              // Facebook Account Card
               _connectedAccountCard(
-                logo: "assets/facebook.png",
+                logo: "assets/logo/facebook/facebook_logo.png",
                 service: "Facebook",
                 status: "Connected",
                 trailing: const Icon(Icons.close, color: Colors.red),
@@ -189,9 +199,9 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 10),
 
-              
+              // Google Account Card
               _connectedAccountCard(
-                logo: "assets/google.png",
+                logo: "assets/logo/google/google_logo.png",
                 service: "Google",
                 status: "Connect",
                 button: true,
@@ -277,7 +287,14 @@ class _ProfilePage extends State<ProfilePage> {
       ),
       child: Row(
         children: [
-          Image.asset(logo, width: 32, height: 32),
+          Image.asset(
+            logo,
+            width: 32,
+            height: 32,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(Icons.image_not_supported, size: 32, color: Colors.grey);
+            },
+          ),
           const SizedBox(width: 12),
 
           

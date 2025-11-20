@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:food_app/database/user_accounts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final UserAccounts? loggedInUser;
 
-  const CustomAppBar({super.key, required this.title});
+  const CustomAppBar({
+    super.key,
+    required this.title,
+    this.loggedInUser,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,34 +37,25 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 shape: BoxShape.circle,
               ),
               child: ClipOval(
-                child: Image.network(
-                  'https://i.imgur.com/2OVfMwP.png',
-                  fit: BoxFit.cover,
-                  width: 36,
-                  height: 36,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  (loadingProgress.expectedTotalBytes ?? 1)
-                              : null,
-                        ),
+                child: loggedInUser != null && loggedInUser!.avatar.isNotEmpty
+                  ? Image.asset(
+                      loggedInUser!.avatar,
+                      fit: BoxFit.cover,
+                      width: 36,
+                      height: 36,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[200],
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.person,
+                            size: 18, color: Colors.grey),
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.broken_image,
-                        size: 18, color: Colors.grey),
-                  ),
-                ),
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.person,
+                          size: 18, color: Colors.grey),
+                    ),
               ),
             ),
           ],

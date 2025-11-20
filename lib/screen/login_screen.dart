@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/main.dart';
 class LoginScreen extends StatefulWidget {
 
   const LoginScreen({super.key});
@@ -89,16 +90,23 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      final matched = accounts.any((acc) => acc.email == email && acc.password == password);
+      final matchedUser = accounts.firstWhere(
+        (acc) => acc.email == email && acc.password == password,
+        orElse: () => UserAccounts(email: '', password: '', name: '', avatar: ''),
+      );
 
-      if (matched) {
+      if (matchedUser.email.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login Successful!')),
         );
-        // Navigate to MainScreen after successful login
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             Navigator.of(context).pushReplacementNamed('/main');
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => MainScreen(loggedInUser: matchedUser),
+              ),
+            );
           }
         });
       } else {
