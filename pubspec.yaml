@@ -27,3 +27,6 @@ flutter:
     - assets/food_images/Fries/
     - assets/food_images/Drinks/
     - assets/food_images/Category/
+    - assets/logo/facebook/
+    - assets/logo/google/
+    - assets/avatars/

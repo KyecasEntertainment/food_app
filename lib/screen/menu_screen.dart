@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/product_list.dart';
+import 'package:food_app/screen/search_screen.dart';
+
+import 'package:food_app/database/user_accounts.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final UserAccounts? loggedInUser;
+  const HomePage({super.key, this.loggedInUser});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -17,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      appBar: CustomAppBar(title: 'Menu'),
+      appBar: CustomAppBar(title: 'Menu', loggedInUser: widget.loggedInUser),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,6 +54,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(30),
         ),
         child: TextField(
+          readOnly: true,
           decoration: InputDecoration(
             border: InputBorder.none,
             prefixIcon: Icon(
@@ -66,6 +71,17 @@ class _HomePageState extends State<HomePage> {
             ),
             contentPadding: EdgeInsets.symmetric(vertical: 15),
           ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchPage(
+                  loggedInUser: widget.loggedInUser,
+                  autoFocus: true,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

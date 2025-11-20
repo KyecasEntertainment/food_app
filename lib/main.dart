@@ -5,6 +5,7 @@ import 'package:food_app/screen/cart_screen.dart';
 import 'package:food_app/screen/profile_screen.dart';
 import 'package:food_app/bottom_nav_bar.dart';
 import 'package:food_app/screen/login_screen.dart';
+import 'package:food_app/database/user_accounts.dart';
 
 
 void main() {
@@ -41,7 +42,9 @@ class MyWidget extends StatelessWidget {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final UserAccounts? loggedInUser;
+  
+  const MainScreen({super.key, this.loggedInUser});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -50,12 +53,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    HomePage(),
-    const SearchPage(),
-    const CartPage(),
-    const ProfilePage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomePage(loggedInUser: widget.loggedInUser),
+      SearchPage(loggedInUser: widget.loggedInUser),
+      CartPage(loggedInUser: widget.loggedInUser),
+      ProfilePage(loggedInUser: widget.loggedInUser),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
