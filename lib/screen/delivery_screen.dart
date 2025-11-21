@@ -130,19 +130,17 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
-  // ------------------------------------------------
-  // FIXED STATUS CARD
-  // ------------------------------------------------
+  
   Widget _buildStatusCard() {
   final bool isFinished = _timePassed >= etaSeconds;
 
   return Container(
-    height: 180, // <<< FIXED HEIGHT (set any size you want)
+    height: 180, 
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
       color: isDelivered
-          ? const Color(0xFF2E7D32) // green when received
-          : const Color(0xFF8E8E8E), // gray
+          ? const Color(0xFF2E7D32) 
+          : const Color(0xFF8E8E8E), 
       borderRadius: BorderRadius.circular(22),
     ),
     child: Row(
@@ -234,9 +232,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
 }
 
 
-  // -------------------------
-  // Rider Card
-  // -------------------------
+ 
   Widget _riderCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -271,9 +267,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
-  // -------------------------
-  // Chat Input
-  // -------------------------
+  
   Widget _chatInput() {
     return TextField(
       controller: _chatController,
@@ -297,9 +291,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
-  // -------------------------
-  // Tip Buttons
-  // -------------------------
+ 
   Widget _tipSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,9 +343,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   }
 }
 
-// --------------------------------------------------------
-// ANIMATED PROGRESS RING W/ CENTER IMAGE
-// --------------------------------------------------------
+
 class LoadingProgressRing extends StatefulWidget {
   final double progress;
   final double size;
@@ -443,9 +433,7 @@ class _LoadingProgressRingState extends State<LoadingProgressRing>
   }
 }
 
-// --------------------------
-// Custom Painter (Arc Ring)
-// --------------------------
+
 class _RingPainter extends CustomPainter {
   final double progress;
   final double strokeWidth;
