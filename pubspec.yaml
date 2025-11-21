@@ -30,3 +30,5 @@ flutter:
     - assets/logo/facebook/
     - assets/logo/google/
     - assets/avatars/
+    - assets/deliverypage/bag/
+    - assets/deliverypage/rider/
