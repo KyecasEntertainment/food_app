@@ -1,9 +1,27 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/main.dart';
 
 class OrderTrackingPage extends StatefulWidget {
-  const OrderTrackingPage({super.key});
+  final double subtotal;
+  final double deliveryFee;
+  final double totalAmount;
+  final int totalItems;
+  final CartManager cartManager;
+  final UserAccounts? loggedInUser;
+
+  const OrderTrackingPage({
+    super.key,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.totalAmount,
+    required this.totalItems,
+    required this.cartManager,
+    this.loggedInUser,
+  });
 
   @override
   State<OrderTrackingPage> createState() => _OrderTrackingPageState();
@@ -57,6 +75,30 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Order has been received")),
     );
+
+    // Show loading for 5-10 seconds then navigate back
+    _showLoadingAndNavigate();
+  }
+
+  void _showLoadingAndNavigate() {
+    // Generate random delay between 5-10 seconds
+    int randomSeconds = Random().nextInt(6) + 5; // 5-10 seconds
+    
+    Future.delayed(Duration(seconds: randomSeconds), () {
+      if (mounted) {
+        // Clear cart data
+        widget.cartManager.clearCart();
+        
+        // Replace entire navigation stack with a fresh MainScreen
+        // (ensures the app lands on the Menu/Home tab)
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => MainScreen(loggedInUser: widget.loggedInUser),
+          ),
+          (route) => false,
+        );
+      }
+    });
   }
 
   String _formatRemainingTime() {
@@ -116,10 +158,10 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     const SizedBox(height: 18),
                     _riderCard(),
                     const SizedBox(height: 16),
+                    _orderSummary(),
+                    const SizedBox(height: 16),
                     _chatInput(),
                     const SizedBox(height: 18),
-                    _tipSection(),
-                    const SizedBox(height: 40),
                   ],
                 ),
               );
@@ -154,7 +196,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                   children: [
                     Text(
                       isDelivered
-                          ? "Order has been received"
+                          ? "Thank you for your order!"
                           : "Your order has arrived!",
                       style: const TextStyle(
                         color: Colors.white,
@@ -206,24 +248,33 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 child: ScaleTransition(scale: animation, child: child),
               );
             },
-            child: isFinished
+            child: isDelivered
                 ? Container(
-                    key: const ValueKey("check_icon"),
+                    key: const ValueKey("success_icon"),
                     alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.check_circle,
-                      size: 72,
-                      color: Colors.white,
+                    child: const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 4,
                     ),
                   )
-                : LoadingProgressRing(
-                    key: const ValueKey("loading_ring"),
-                    progress: progress,
-                    size: 100,
-                    strokeWidth: 14,
-                    deliveryImageAsset:
-                        "assets/deliverypage/bag/delivpic.png",
-                  ),
+                : isFinished
+                    ? Container(
+                        key: const ValueKey("check_icon"),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.check_circle,
+                          size: 72,
+                          color: Colors.white,
+                        ),
+                      )
+                    : LoadingProgressRing(
+                        key: const ValueKey("loading_ring"),
+                        progress: progress,
+                        size: 100,
+                        strokeWidth: 14,
+                        deliveryImageAsset:
+                            "assets/deliverypage/bag/delivpic.png",
+                      ),
           ),
         ),
       ],
@@ -267,6 +318,85 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
+  Widget _orderSummary() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Order Summary",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Items:", style: TextStyle(color: Colors.grey)),
+              Text("${widget.totalItems}", style: const TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Subtotal:", style: TextStyle(color: Colors.grey)),
+              Text("₱${widget.subtotal.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Delivery Fee:", style: TextStyle(color: Colors.grey)),
+              Text("₱${widget.deliveryFee.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          // Show tip if included in totalAmount (totalAmount = subtotal + deliveryFee + tip)
+          Builder(
+            builder: (context) {
+              final double tip = widget.totalAmount - widget.subtotal - widget.deliveryFee;
+              if (tip > 0.009) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Tip:", style: TextStyle(color: Colors.grey)),
+                        Text("₱${tip.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const Divider(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Total:",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "₱${widget.totalAmount.toStringAsFixed(2)}",
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 85, 3, 129)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   
   Widget _chatInput() {
     return TextField(
@@ -291,56 +421,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
- 
-  Widget _tipSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("💰 Tip Rider", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _tipButton(5),
-            _tipButton(10),
-            _tipButton(20),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _tipButton(double amount) {
-    final active = selectedTip == amount;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedTip = amount);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Selected tip: ₱${amount.toInt()}")));
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-        decoration: BoxDecoration(
-          color: active ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: active ? Colors.black : Colors.grey.shade300,
-            width: 2,
-          ),
-        ),
-        child: Text(
-          "₱${amount.toInt()}",
-          style: TextStyle(
-            color: active ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 

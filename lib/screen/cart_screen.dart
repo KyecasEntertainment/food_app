@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/screen/checkout_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
@@ -270,11 +271,17 @@ class _CartPageState extends State<CartPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Proceeding to checkout with ₱${(widget.cartManager.totalPrice + deliveryFee).toStringAsFixed(2)}'),
-                                duration: Duration(seconds: 2),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CheckoutPage(
+                                  loggedInUser: widget.loggedInUser,
+                                  cartManager: widget.cartManager,
+                                  subtotal: widget.cartManager.totalPrice,
+                                  deliveryFee: deliveryFee,
+                                  totalAmount: widget.cartManager.totalPrice + deliveryFee,
+                                  totalItems: widget.cartManager.itemCount,
+                                ),
                               ),
                             );
                           },

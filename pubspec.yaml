@@ -29,6 +29,8 @@ flutter:
     - assets/food_images/Category/
     - assets/logo/facebook/
     - assets/logo/google/
+    - assets/logo/payment_modes/
     - assets/avatars/
     - assets/deliverypage/bag/
     - assets/deliverypage/rider/
+
