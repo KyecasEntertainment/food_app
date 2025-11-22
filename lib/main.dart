@@ -6,6 +6,7 @@ import 'package:food_app/screen/profile_screen.dart';
 import 'package:food_app/bottom_nav_bar.dart';
 import 'package:food_app/screen/login_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/database/cart_manager.dart';
 
 
 void main() {
@@ -52,16 +53,21 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  final CartManager _cartManager = CartManager();
 
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _buildPages();
+  }
+
+  void _buildPages() {
     _pages = [
-      HomePage(loggedInUser: widget.loggedInUser),
-      SearchPage(loggedInUser: widget.loggedInUser),
-      CartPage(loggedInUser: widget.loggedInUser),
+      HomePage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
+      SearchPage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
+      CartPage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
       ProfilePage(loggedInUser: widget.loggedInUser),
     ];
   }

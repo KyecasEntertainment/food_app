@@ -3,12 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/product_list.dart';
 import 'package:food_app/screen/search_screen.dart';
-
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/database/cart_item.dart';
 
 class HomePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
-  const HomePage({super.key, this.loggedInUser});
+  final CartManager cartManager;
+  const HomePage({super.key, this.loggedInUser, required this.cartManager});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -78,6 +80,8 @@ class _HomePageState extends State<HomePage> {
                 builder: (context) => SearchPage(
                   loggedInUser: widget.loggedInUser,
                   autoFocus: true,
+                  cartManager: widget.cartManager,
+                  showBackButton: true,
                 ),
               ),
             );
@@ -367,6 +371,14 @@ class _HomePageState extends State<HomePage> {
             child: GestureDetector(
               onTap: () {
                 // Add to cart functionality
+                final cartItem = CartItem(
+                  product_id: product.product_id,
+                  product_name: product.product_name,
+                  product_image: product.product_image,
+                  product_price: product.product_price,
+                  quantity: 1,
+                );
+                widget.cartManager.addItem(cartItem);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('${product.product_name} added to cart!'),

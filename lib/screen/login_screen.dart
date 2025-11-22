@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final matchedUser = accounts.firstWhere(
         (acc) => acc.email == email && acc.password == password,
-        orElse: () => UserAccounts(email: '', password: '', name: '', avatar: ''),
+        orElse: () => UserAccounts(email: '', password: '', name: '', avatar: '', role: ''),
       );
 
       if (matchedUser.email.isNotEmpty) {
@@ -101,8 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
-            Navigator.of(context).pushReplacementNamed('/main');
-            Navigator.of(context).push(
+            // Replace the login route with MainScreen passing the logged-in user
+            Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => MainScreen(loggedInUser: matchedUser),
               ),

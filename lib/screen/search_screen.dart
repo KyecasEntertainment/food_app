@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/product_list.dart';
+import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/database/cart_item.dart';
 
 class SearchPage extends StatefulWidget {
   final UserAccounts? loggedInUser;
   final bool autoFocus;
-  const SearchPage({super.key, this.loggedInUser, this.autoFocus = false});
+  final CartManager cartManager;
+  final bool showBackButton;
+  const SearchPage({super.key, this.loggedInUser, this.autoFocus = false, required this.cartManager, this.showBackButton = false});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -42,7 +45,7 @@ class _SearchPageState extends State<SearchPage> {
         : products.where((p) => p.product_name.toLowerCase().contains(searchText.toLowerCase())).toList();
 
     return Scaffold(
-      appBar: CustomAppBar(title: 'Search', loggedInUser: widget.loggedInUser),
+      appBar: CustomAppBar(title: 'Search', loggedInUser: widget.loggedInUser, showBackButton: widget.showBackButton),
       body: Column(
         children: [
           Padding(
@@ -86,7 +89,32 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     title: Text(product.product_name),
                     subtitle: Text(product.product_category),
-                    trailing: Text('₱${product.product_price.toStringAsFixed(2)}'),
+                    trailing: GestureDetector(
+                      onTap: () {
+                        final cartItem = CartItem(
+                          product_id: product.product_id,
+                          product_name: product.product_name,
+                          product_image: product.product_image,
+                          product_price: product.product_price,
+                          quantity: 1,
+                        );
+                        widget.cartManager.addItem(cartItem);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${product.product_name} added to cart!'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.add, color: Colors.white, size: 18),
+                      ),
+                    ),
                   ),
                 );
               },

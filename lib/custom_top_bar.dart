@@ -5,16 +5,19 @@ import 'package:food_app/database/user_accounts.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final UserAccounts? loggedInUser;
+  final bool showBackButton;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.loggedInUser,
+    this.showBackButton = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: showBackButton,
       title: Container(
         padding: EdgeInsets.only(top: 20, bottom: 20),
         child: Row(
