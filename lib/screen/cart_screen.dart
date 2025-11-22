@@ -127,7 +127,7 @@ class _CartPageState extends State<CartPage> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: const Color.fromARGB(255, 85, 3, 129),
+                                        color: const Color.fromARGB(255, 123, 5, 187),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(Icons.add,
