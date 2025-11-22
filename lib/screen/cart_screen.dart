@@ -105,7 +105,7 @@ class _CartPageState extends State<CartPage> {
                                       style: GoogleFonts.inter(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.green[700],
+                                        color: const Color.fromARGB(255, 85, 3, 129),
                                       ),
                                     ),
                                   ],
@@ -127,7 +127,7 @@ class _CartPageState extends State<CartPage> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: Colors.green,
+                                        color: const Color.fromARGB(255, 85, 3, 129),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(Icons.add,
@@ -156,7 +156,7 @@ class _CartPageState extends State<CartPage> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: Colors.red,
+                                        color: const Color.fromARGB(255, 85, 85, 85),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(Icons.remove,
@@ -260,7 +260,7 @@ class _CartPageState extends State<CartPage> {
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green[700],
+                              color: const Color.fromARGB(255, 85, 3, 129),
                             ),
                           ),
                         ],
@@ -279,7 +279,7 @@ class _CartPageState extends State<CartPage> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: const Color.fromARGB(255, 85, 3, 129),
                             padding: EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
