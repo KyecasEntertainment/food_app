@@ -17,7 +17,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   static const double _horizontalPadding = 40.0;
-  static const double _avatarOuterRadius = 90.0;
+  // Avatar radius (single circle)
+  static const double _avatarRadius = 80.0;
+  // Maximum width for input fields to avoid overly wide inputs on large screens
+  static const double _inputMaxWidth = 520.0;
 
   @override
   void dispose() {
@@ -61,13 +64,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        keyboardType: keyboardType,
-        textInputAction: textInputAction,
-        decoration: _inputDecoration(hint, suffix: suffix),
-        validator: validator,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _inputMaxWidth),
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscure,
+            keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            decoration: _inputDecoration(hint, suffix: suffix),
+            validator: validator,
+          ),
+        ),
       ),
     );
   }
@@ -148,12 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
                 CircleAvatar(
-                  radius: _avatarOuterRadius,
-                  backgroundColor: Colors.white.withOpacity(0.3),
-                  child: const CircleAvatar(
-                    radius: 80,
-                    backgroundImage: AssetImage('assets/food_images/Burgers/ClassicBurger.jpg'),
-                  ),
+                  radius: _avatarRadius,
+                  backgroundImage: const AssetImage('assets/logo/app/ChowPremacy.png'),
                 ),
                 const SizedBox(height: 50),
 

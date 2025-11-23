@@ -30,6 +30,7 @@ flutter:
     - assets/logo/facebook/
     - assets/logo/google/
     - assets/logo/payment_modes/
+    - assets/logo/app/
     - assets/avatars/
     - assets/deliverypage/bag/
     - assets/deliverypage/rider/
