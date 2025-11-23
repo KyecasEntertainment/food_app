@@ -7,7 +7,7 @@ This document summarizes every Dart source file under `lib/` (as of now). It lis
 ## Overview
 The app is a Flutter mobile app (Food ordering). The root `lib/` contains UI screens, a shared `CartManager`, product/payment data and user accounts.
 
-This README is generated from the current workspace state and describes:
+This README is made for the current workspace state and describes:
 - `lib/main.dart`
 - `lib/bottom_nav_bar.dart`
 - `lib/custom_top_bar.dart`
@@ -186,15 +186,3 @@ Notes: `MainScreen` creates a single `CartManager` instance and passes it to pag
 
 ---
 
-## Notes & Recommendations
-- `session_manager.dart` is empty — implement persistent login/session handling there if desired.
-- Tip is currently encoded by adding `tipAmount` to the `totalAmount` passed to `OrderTrackingPage` rather than passing an explicit `tip` parameter; consider adding an explicit `tip` prop for clarity and to avoid floating-point derivation.
-- Asset paths used in `payment_modes.dart` and product images must match files in `assets/`; if images fail to load, check `pubspec.yaml` and the asset filenames.
-
----
-
-If you want, I can:
-- Create a nicely formatted `README.md` at the project root (I can add links to files and a quick usage guide), or
-- Update `session_manager.dart` with a tiny `SessionManager` wrapper around `shared_preferences` to persist a logged-in user's email.
-
-Tell me which follow-up you'd like and I'll implement it.
