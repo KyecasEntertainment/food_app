@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/database/product_list.dart';
 import 'package:food_app/custom_top_bar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,12 +17,15 @@ class _ProfilePage extends State<ProfilePage> {
   late String email;
   late String contact;
 
-  // Dummy product list
-  List<String> products = ["Burger", "Fries", "Pizza"];
+  // Use the actual products list from product_list.dart
+  late List<StoreProducts> productList;
 
   @override
   void initState() {
     super.initState();
+    // Initialize product list from the global products list
+    productList = List.from(products);
+    
     if (widget.loggedInUser != null) {
       name = widget.loggedInUser!.name;
       email = widget.loggedInUser!.email;
@@ -99,7 +103,10 @@ class _ProfilePage extends State<ProfilePage> {
   // -------------------------------------------------------------
   void _openAddProductPopup() {
     String productName = "";
-    String productPrice = "";
+    String productCategory = "Burgers";
+    double productPrice = 0.0;
+    String productImage = "";
+    final categories = ["Burgers", "Pizza", "Fried Chicken", "Fries", "Drinks"];
 
     showModalBottomSheet(
       context: context,
@@ -125,17 +132,28 @@ class _ProfilePage extends State<ProfilePage> {
             ),
             const SizedBox(height: 12),
 
-            TextField(
-              decoration: _input("Price"),
-              keyboardType: TextInputType.number,
-              onChanged: (v) => productPrice = v,
+            DropdownButtonFormField<String>(
+              value: productCategory,
+              items: categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) => productCategory = v ?? "Burgers",
+              decoration: _input("Category"),
             ),
             const SizedBox(height: 12),
 
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text("Upload Product Photo"),
+            TextField(
+              decoration: _input("Price"),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) => productPrice = double.tryParse(v) ?? 0.0,
             ),
+            const SizedBox(height: 12),
+
+            TextField(
+              decoration: _input("Image Path"),
+              onChanged: (v) => productImage = v,
+            ),
+            const SizedBox(height: 12),
 
             const SizedBox(height: 25),
 
@@ -144,10 +162,25 @@ class _ProfilePage extends State<ProfilePage> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  setState(() {
-                    products.add(productName);
-                  });
-                  Navigator.pop(context);
+                  if (productName.isNotEmpty && productPrice > 0) {
+                    setState(() {
+                      final newId = (productList.isEmpty ? 0 : productList.last.product_id) + 1;
+                      final newProduct = StoreProducts(
+                        product_id: newId,
+                        product_category: productCategory,
+                        product_name: productName,
+                        product_image: productImage.isNotEmpty ? productImage : "assets/food_images/Category/all.png",
+                        product_price: productPrice,
+                      );
+                      productList.add(newProduct);
+                      // Update global products list
+                      products.add(newProduct);
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Product added successfully!")),
+                    );
+                  }
                 },
                 child: const Text("Confirm"),
               ),
@@ -163,9 +196,18 @@ class _ProfilePage extends State<ProfilePage> {
   // POPUP: EDIT PRODUCT
   // -------------------------------------------------------------
   void _openEditProductPopup() {
-    String selectedProduct = products.first;
-    String newName = "";
-    String newPrice = "";
+    if (productList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No products to edit")),
+      );
+      return;
+    }
+
+    late StoreProducts selectedProduct = productList.first;
+    late String newName = selectedProduct.product_name;
+    late double newPrice = selectedProduct.product_price;
+    late String newCategory = selectedProduct.product_category;
+    final categories = ["Burgers", "Pizza", "Fried Chicken", "Fries", "Drinks"];
 
     showModalBottomSheet(
       context: context,
@@ -185,15 +227,22 @@ class _ProfilePage extends State<ProfilePage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            DropdownButtonFormField(
+            DropdownButtonFormField<StoreProducts>(
               value: selectedProduct,
-              items: products
+              items: productList
                   .map((p) => DropdownMenuItem(
                         value: p,
-                        child: Text(p),
+                        child: Text(p.product_name),
                       ))
                   .toList(),
-              onChanged: (v) => selectedProduct = v!,
+              onChanged: (v) {
+                if (v != null) {
+                  selectedProduct = v;
+                  newName = v.product_name;
+                  newPrice = v.product_price;
+                  newCategory = v.product_category;
+                }
+              },
               decoration: _input("Choose Product"),
             ),
 
@@ -201,20 +250,26 @@ class _ProfilePage extends State<ProfilePage> {
 
             TextField(
               decoration: _input("New Name"),
+              controller: TextEditingController(text: newName),
               onChanged: (v) => newName = v,
+            ),
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: newCategory,
+              items: categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) => newCategory = v ?? newCategory,
+              decoration: _input("Category"),
             ),
             const SizedBox(height: 12),
 
             TextField(
               decoration: _input("New Price"),
-              keyboardType: TextInputType.number,
-              onChanged: (v) => newPrice = v,
-            ),
-            const SizedBox(height: 12),
-
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text("Upload New Photo"),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              controller: TextEditingController(text: newPrice.toString()),
+              onChanged: (v) => newPrice = double.tryParse(v) ?? newPrice,
             ),
 
             const SizedBox(height: 25),
@@ -225,11 +280,25 @@ class _ProfilePage extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    int i = products.indexOf(selectedProduct);
-                    products[i] =
-                        newName.isNotEmpty ? newName : selectedProduct;
+                    final index = productList.indexOf(selectedProduct);
+                    final updatedProduct = StoreProducts(
+                      product_id: selectedProduct.product_id,
+                      product_category: newCategory,
+                      product_name: newName,
+                      product_image: selectedProduct.product_image,
+                      product_price: newPrice,
+                    );
+                    productList[index] = updatedProduct;
+                    // Update global products list
+                    final globalIndex = products.indexOf(selectedProduct);
+                    if (globalIndex != -1) {
+                      products[globalIndex] = updatedProduct;
+                    }
                   });
                   Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Product updated successfully!")),
+                  );
                 },
                 child: const Text("Confirm Changes"),
               ),
@@ -245,7 +314,14 @@ class _ProfilePage extends State<ProfilePage> {
   // POPUP: REMOVE PRODUCT
   // -------------------------------------------------------------
   void _openRemoveProductPopup() {
-    String selectedProduct = products.first;
+    if (productList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No products to remove")),
+      );
+      return;
+    }
+
+    late StoreProducts selectedProduct = productList.first;
 
     showModalBottomSheet(
       context: context,
@@ -261,13 +337,13 @@ class _ProfilePage extends State<ProfilePage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            DropdownButtonFormField(
+            DropdownButtonFormField<StoreProducts>(
               value: selectedProduct,
-              items: products
+              items: productList
                   .map((p) =>
-                      DropdownMenuItem(value: p, child: Text(p)))
+                      DropdownMenuItem(value: p, child: Text(p.product_name)))
                   .toList(),
-              onChanged: (v) => selectedProduct = v!,
+              onChanged: (v) => selectedProduct = v ?? selectedProduct,
               decoration: _input("Select Product"),
             ),
 
@@ -280,9 +356,14 @@ class _ProfilePage extends State<ProfilePage> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () {
                   setState(() {
+                    productList.remove(selectedProduct);
+                    // Update global products list
                     products.remove(selectedProduct);
                   });
                   Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Product removed successfully!")),
+                  );
                 },
                 child: const Text("Confirm Remove",
                     style: TextStyle(color: Colors.white)),
@@ -379,23 +460,27 @@ class _ProfilePage extends State<ProfilePage> {
 
               const SizedBox(height: 30),
 
-              const Text("Product Management",
-                  style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 15),
+              // Product Management - only show for Admin users
+              if (widget.loggedInUser != null &&
+                  widget.loggedInUser!.role == "Admin") ...[
+                const Text("Product Management",
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 15),
 
-              _actionButton("Add Product", Icons.add, Colors.green,
-                  _openAddProductPopup),
-              const SizedBox(height: 10),
+                _actionButton("Add Product", Icons.add, Colors.green,
+                    _openAddProductPopup),
+                const SizedBox(height: 10),
 
-              _actionButton("Edit Product", Icons.edit, Colors.blue,
-                  _openEditProductPopup),
-              const SizedBox(height: 10),
+                _actionButton("Edit Product", Icons.edit, Colors.blue,
+                    _openEditProductPopup),
+                const SizedBox(height: 10),
 
-              _actionButton("Remove Product", Icons.delete, Colors.red,
-                  _openRemoveProductPopup),
+                _actionButton("Remove Product", Icons.delete, Colors.red,
+                    _openRemoveProductPopup),
 
-              const SizedBox(height: 40),
+                const SizedBox(height: 40),
+              ],
             ],
           ),
         ),
@@ -452,64 +537,6 @@ class _ProfilePage extends State<ProfilePage> {
           BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
       child:
           Text(text, style: const TextStyle(color: Colors.white, fontSize: 12)),
-    );
-  }
-
-  Widget _connectedAccountCard({
-    required String logo,
-    required String service,
-    required String status,
-    bool button = false,
-    Widget? trailing,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade400,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Image.asset(
-            logo,
-            width: 32,
-            height: 32,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.image_not_supported,
-                  size: 32, color: Colors.white);
-            },
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(service,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
-                Text(status,
-                    style:
-                        const TextStyle(color: Colors.white70, fontSize: 14)),
-              ],
-            ),
-          ),
-          if (button)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white70,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child:
-                  const Text("Connect", style: TextStyle(color: Colors.black)),
-            )
-          else if (trailing != null)
-            trailing,
-        ],
-      ),
     );
   }
 
