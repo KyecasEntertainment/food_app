@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/product_list.dart';
 import 'package:food_app/custom_top_bar.dart';
+import 'package:food_app/app_colors.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -25,7 +26,7 @@ class _ProfilePage extends State<ProfilePage> {
     super.initState();
     // Initialize product list from the global products list
     productList = List.from(products);
-    
+
     if (widget.loggedInUser != null) {
       name = widget.loggedInUser!.name;
       email = widget.loggedInUser!.email;
@@ -71,14 +72,12 @@ class _ProfilePage extends State<ProfilePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: _input(title),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 16),
+            TextField(controller: controller, decoration: _input(title)),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
@@ -117,13 +116,17 @@ class _ProfilePage extends State<ProfilePage> {
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20, right: 20, top: 25,
+          left: 20,
+          right: 20,
+          top: 25,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Add Product",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              "Add Product",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
 
             TextField(
@@ -144,7 +147,9 @@ class _ProfilePage extends State<ProfilePage> {
 
             TextField(
               decoration: _input("Price"),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (v) => productPrice = double.tryParse(v) ?? 0.0,
             ),
             const SizedBox(height: 12),
@@ -164,12 +169,18 @@ class _ProfilePage extends State<ProfilePage> {
                 onPressed: () {
                   if (productName.isNotEmpty && productPrice > 0) {
                     setState(() {
-                      final newId = (productList.isEmpty ? 0 : productList.last.product_id) + 1;
+                      final newId =
+                          (productList.isEmpty
+                              ? 0
+                              : productList.last.product_id) +
+                          1;
                       final newProduct = StoreProducts(
                         product_id: newId,
                         product_category: productCategory,
                         product_name: productName,
-                        product_image: productImage.isNotEmpty ? productImage : "assets/food_images/Category/all.png",
+                        product_image: productImage.isNotEmpty
+                            ? productImage
+                            : "assets/food_images/Category/all.png",
                         product_price: productPrice,
                       );
                       productList.add(newProduct);
@@ -178,7 +189,9 @@ class _ProfilePage extends State<ProfilePage> {
                     });
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Product added successfully!")),
+                      const SnackBar(
+                        content: Text("Product added successfully!"),
+                      ),
                     );
                   }
                 },
@@ -197,9 +210,9 @@ class _ProfilePage extends State<ProfilePage> {
   // -------------------------------------------------------------
   void _openEditProductPopup() {
     if (productList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No products to edit")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("No products to edit")));
       return;
     }
 
@@ -218,22 +231,26 @@ class _ProfilePage extends State<ProfilePage> {
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20, right: 20, top: 25,
+          left: 20,
+          right: 20,
+          top: 25,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Edit Product",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              "Edit Product",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
 
             DropdownButtonFormField<StoreProducts>(
               value: selectedProduct,
               items: productList
-                  .map((p) => DropdownMenuItem(
-                        value: p,
-                        child: Text(p.product_name),
-                      ))
+                  .map(
+                    (p) =>
+                        DropdownMenuItem(value: p, child: Text(p.product_name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) {
@@ -267,7 +284,9 @@ class _ProfilePage extends State<ProfilePage> {
 
             TextField(
               decoration: _input("New Price"),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               controller: TextEditingController(text: newPrice.toString()),
               onChanged: (v) => newPrice = double.tryParse(v) ?? newPrice,
             ),
@@ -297,7 +316,9 @@ class _ProfilePage extends State<ProfilePage> {
                   });
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Product updated successfully!")),
+                    const SnackBar(
+                      content: Text("Product updated successfully!"),
+                    ),
                   );
                 },
                 child: const Text("Confirm Changes"),
@@ -315,9 +336,9 @@ class _ProfilePage extends State<ProfilePage> {
   // -------------------------------------------------------------
   void _openRemoveProductPopup() {
     if (productList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No products to remove")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("No products to remove")));
       return;
     }
 
@@ -333,15 +354,19 @@ class _ProfilePage extends State<ProfilePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Remove Product",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              "Remove Product",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
 
             DropdownButtonFormField<StoreProducts>(
               value: selectedProduct,
               items: productList
-                  .map((p) =>
-                      DropdownMenuItem(value: p, child: Text(p.product_name)))
+                  .map(
+                    (p) =>
+                        DropdownMenuItem(value: p, child: Text(p.product_name)),
+                  )
                   .toList(),
               onChanged: (v) => selectedProduct = v ?? selectedProduct,
               decoration: _input("Select Product"),
@@ -353,7 +378,9 @@ class _ProfilePage extends State<ProfilePage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.orange,
+                ),
                 onPressed: () {
                   setState(() {
                     productList.remove(selectedProduct);
@@ -362,11 +389,15 @@ class _ProfilePage extends State<ProfilePage> {
                   });
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Product removed successfully!")),
+                    const SnackBar(
+                      content: Text("Product removed successfully!"),
+                    ),
                   );
                 },
-                child: const Text("Confirm Remove",
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  "Confirm Remove",
+                  style: TextStyle(color: AppColors.text),
+                ),
               ),
             ),
 
@@ -383,7 +414,7 @@ class _ProfilePage extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: AppColors.surface,
       appBar: CustomAppBar(title: 'Profile', loggedInUser: widget.loggedInUser),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -396,24 +427,26 @@ class _ProfilePage extends State<ProfilePage> {
               Center(
                 child: CircleAvatar(
                   radius: 70,
-                  backgroundColor: Colors.grey[400],
+                  backgroundColor: AppColors.lavender,
                   backgroundImage: widget.loggedInUser != null
                       ? AssetImage(widget.loggedInUser!.avatar)
                       : null,
                   child: widget.loggedInUser == null
-                      ? const Icon(Icons.person,
-                          size: 70, color: Colors.white)
+                      ? const Icon(Icons.person, size: 70, color: AppColors.ink)
                       : null,
                 ),
               ),
 
               const SizedBox(height: 25),
 
-              const Text("Personal Information",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87)),
+              const Text(
+                "Personal Information",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.text,
+                ),
+              ),
               const SizedBox(height: 10),
 
               _infoCard(
@@ -440,7 +473,7 @@ class _ProfilePage extends State<ProfilePage> {
                     onSave: (v) => setState(() => email = v),
                   );
                 },
-                badge: _buildBadge("Verify", Colors.red),
+                badge: _buildBadge("Verify", AppColors.orange),
               ),
 
               const SizedBox(height: 12),
@@ -455,7 +488,7 @@ class _ProfilePage extends State<ProfilePage> {
                     onSave: (v) => setState(() => contact = v),
                   );
                 },
-                badge: _buildBadge("Verified", Colors.green),
+                badge: _buildBadge("Verified", AppColors.primary),
               ),
 
               const SizedBox(height: 30),
@@ -463,21 +496,34 @@ class _ProfilePage extends State<ProfilePage> {
               // Product Management - only show for Admin users
               if (widget.loggedInUser != null &&
                   widget.loggedInUser!.role == "Admin") ...[
-                const Text("Product Management",
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  "Product Management",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 15),
 
-                _actionButton("Add Product", Icons.add, Colors.green,
-                    _openAddProductPopup),
+                _actionButton(
+                  "Add Product",
+                  Icons.add,
+                  AppColors.orange,
+                  _openAddProductPopup,
+                ),
                 const SizedBox(height: 10),
 
-                _actionButton("Edit Product", Icons.edit, Colors.blue,
-                    _openEditProductPopup),
+                _actionButton(
+                  "Edit Product",
+                  Icons.edit,
+                  AppColors.primary,
+                  _openEditProductPopup,
+                ),
                 const SizedBox(height: 10),
 
-                _actionButton("Remove Product", Icons.delete, Colors.red,
-                    _openRemoveProductPopup),
+                _actionButton(
+                  "Remove Product",
+                  Icons.delete,
+                  AppColors.ink,
+                  _openRemoveProductPopup,
+                ),
 
                 const SizedBox(height: 40),
               ],
@@ -497,34 +543,36 @@ class _ProfilePage extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade400,
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(fontSize: 13, color: Colors.white70)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+          ),
           const SizedBox(height: 4),
           Row(
             children: [
               Expanded(
-                child: Text(value,
-                    style: const TextStyle(
-                        fontSize: 17,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600)),
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               GestureDetector(
                 onTap: onEdit,
-                child: const Icon(Icons.edit, color: Colors.white),
+                child: const Icon(Icons.edit, color: AppColors.surface),
               ),
             ],
           ),
-          if (badge != null) ...[
-            const SizedBox(height: 8),
-            badge,
-          ]
+          if (badge != null) ...[const SizedBox(height: 8), badge],
         ],
       ),
     );
@@ -533,29 +581,42 @@ class _ProfilePage extends State<ProfilePage> {
   Widget _buildBadge(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
-      child:
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 12)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: AppColors.text, fontSize: 12),
+      ),
     );
   }
 
   Widget _actionButton(
-      String text, IconData icon, Color color, VoidCallback onTap) {
+    String text,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         onPressed: onTap,
-        icon: Icon(icon, color: Colors.white),
-        label: Text(text,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
+        icon: Icon(icon, color: AppColors.text),
+        label: Text(
+          text,
+          style: const TextStyle(
+            color: AppColors.text,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

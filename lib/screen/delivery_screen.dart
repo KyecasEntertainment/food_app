@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/main.dart';
+import 'package:food_app/app_colors.dart';
 
 class OrderTrackingPage extends StatefulWidget {
   final double subtotal;
@@ -72,9 +73,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       isDelivered = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Order has been received")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Order has been received")));
 
     // Show loading for 5-10 seconds then navigate back
     _showLoadingAndNavigate();
@@ -83,12 +84,12 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   void _showLoadingAndNavigate() {
     // Generate random delay between 5-10 seconds
     int randomSeconds = Random().nextInt(6) + 5; // 5-10 seconds
-    
+
     Future.delayed(Duration(seconds: randomSeconds), () {
       if (mounted) {
         // Clear cart data
         widget.cartManager.clearCart();
-        
+
         // Replace entire navigation stack with a fresh MainScreen
         // (ensures the app lands on the Menu/Home tab)
         Navigator.of(context).pushAndRemoveUntil(
@@ -111,7 +112,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: AppColors.lavender,
       body: Stack(
         children: [
           SafeArea(
@@ -128,14 +129,14 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: AppColors.ink.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
                     ),
@@ -143,14 +144,17 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 ),
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   children: [
                     Center(
                       child: Container(
                         width: 60,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: AppColors.lavender,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -172,125 +176,124 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
-  
   Widget _buildStatusCard() {
-  final bool isFinished = _timePassed >= etaSeconds;
+    final bool isFinished = _timePassed >= etaSeconds;
 
-  return Container(
-    height: 180, 
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: isDelivered
-          ? const Color(0xFF2E7D32) 
-          : const Color(0xFF8E8E8E), 
-      borderRadius: BorderRadius.circular(22),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: isFinished
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isDelivered
-                          ? "Thank you for your order!"
-                          : "Your order has arrived!",
+    return Container(
+      height: 180,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDelivered ? AppColors.orange : AppColors.primary,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: isFinished
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isDelivered
+                            ? "Thank you for your order!"
+                            : "Your order has arrived!",
+                        style: const TextStyle(
+                          color: AppColors.surface,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      if (!isDelivered)
+                        ElevatedButton(
+                          onPressed: _onOrderReceived,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.surface,
+                            foregroundColor: AppColors.text,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 18,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Order Received"),
+                        ),
+                    ],
+                  )
+                : Center(
+                    child: Text(
+                      "${_formatRemainingTime()}\nOrder is On\nthe Way",
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.text,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        height: 1.28,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (!isDelivered)
-                      ElevatedButton(
-                        onPressed: _onOrderReceived,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text("Order Received"),
-                      ),
-                  ],
-                )
-              : Center(
-                  child: Text(
-                    "${_formatRemainingTime()}\nOrder is On\nthe Way",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      height: 1.28,
                     ),
                   ),
-                ),
-        ),
-
-        SizedBox(
-          width: 100,
-          height: 100,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 600),
-            switchInCurve: Curves.easeOutBack,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(scale: animation, child: child),
-              );
-            },
-            child: isDelivered
-                ? Container(
-                    key: const ValueKey("success_icon"),
-                    alignment: Alignment.center,
-                    child: const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 4,
-                    ),
-                  )
-                : isFinished
-                    ? Container(
-                        key: const ValueKey("check_icon"),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.check_circle,
-                          size: 72,
-                          color: Colors.white,
-                        ),
-                      )
-                    : LoadingProgressRing(
-                        key: const ValueKey("loading_ring"),
-                        progress: progress,
-                        size: 100,
-                        strokeWidth: 14,
-                        deliveryImageAsset:
-                            "assets/deliverypage/bag/delivpic.png",
-                      ),
           ),
-        ),
-      ],
-    ),
-  );
-}
 
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(scale: animation, child: child),
+                );
+              },
+              child: isDelivered
+                  ? Container(
+                      key: const ValueKey("success_icon"),
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.surface,
+                        ),
+                        strokeWidth: 4,
+                      ),
+                    )
+                  : isFinished
+                  ? Container(
+                      key: const ValueKey("check_icon"),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.check_circle,
+                        size: 72,
+                        color: AppColors.text,
+                      ),
+                    )
+                  : LoadingProgressRing(
+                      key: const ValueKey("loading_ring"),
+                      progress: progress,
+                      size: 100,
+                      strokeWidth: 14,
+                      deliveryImageAsset:
+                          "assets/deliverypage/bag/delivpic.png",
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
- 
   Widget _riderCard() {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.lavender),
       ),
       child: Row(
         children: [
@@ -303,16 +306,16 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Ariel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  "Ariel",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 4),
-                Text("Motorbike", style: TextStyle(color: Colors.grey)),
+                Text("Motorbike", style: TextStyle(color: AppColors.text)),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
-          ),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert)),
         ],
       ),
     );
@@ -322,9 +325,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.lavender),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,30 +340,43 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Items:", style: TextStyle(color: Colors.grey)),
-              Text("${widget.totalItems}", style: const TextStyle(fontWeight: FontWeight.w500)),
+              const Text("Items:", style: TextStyle(color: AppColors.text)),
+              Text(
+                "${widget.totalItems}",
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Subtotal:", style: TextStyle(color: Colors.grey)),
-              Text("₱${widget.subtotal.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+              const Text("Subtotal:", style: TextStyle(color: AppColors.text)),
+              Text(
+                "₱${widget.subtotal.toStringAsFixed(2)}",
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Delivery Fee:", style: TextStyle(color: Colors.grey)),
-              Text("₱${widget.deliveryFee.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+              const Text(
+                "Delivery Fee:",
+                style: TextStyle(color: AppColors.text),
+              ),
+              Text(
+                "₱${widget.deliveryFee.toStringAsFixed(2)}",
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           // Show tip if included in totalAmount (totalAmount = subtotal + deliveryFee + tip)
           Builder(
             builder: (context) {
-              final double tip = widget.totalAmount - widget.subtotal - widget.deliveryFee;
+              final double tip =
+                  widget.totalAmount - widget.subtotal - widget.deliveryFee;
               if (tip > 0.009) {
                 return Column(
                   children: [
@@ -368,8 +384,14 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Tip:", style: TextStyle(color: Colors.grey)),
-                        Text("₱${tip.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w500)),
+                        const Text(
+                          "Tip:",
+                          style: TextStyle(color: AppColors.text),
+                        ),
+                        Text(
+                          "₱${tip.toStringAsFixed(2)}",
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
                       ],
                     ),
                   ],
@@ -388,7 +410,11 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               ),
               Text(
                 "₱${widget.totalAmount.toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 85, 3, 129)),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.text,
+                ),
               ),
             ],
           ),
@@ -397,16 +423,18 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     );
   }
 
-  
   Widget _chatInput() {
     return TextField(
       controller: _chatController,
       decoration: InputDecoration(
         hintText: "Chat with your rider",
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: AppColors.surface,
         prefixIcon: const Icon(Icons.chat_bubble_outline),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 14,
+          horizontal: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
@@ -415,14 +443,13 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       textInputAction: TextInputAction.send,
       onSubmitted: (val) {
         _chatController.clear();
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Message sent")));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Message sent")));
       },
     );
   }
-
 }
-
 
 class LoadingProgressRing extends StatefulWidget {
   final double progress;
@@ -460,10 +487,10 @@ class _LoadingProgressRingState extends State<LoadingProgressRing>
       duration: const Duration(milliseconds: 10),
     );
 
-    _animatedProgress =
-        Tween<double>(begin: _oldValue, end: widget.progress).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _animatedProgress = Tween<double>(
+      begin: _oldValue,
+      end: widget.progress,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -513,7 +540,6 @@ class _LoadingProgressRingState extends State<LoadingProgressRing>
   }
 }
 
-
 class _RingPainter extends CustomPainter {
   final double progress;
   final double strokeWidth;
@@ -523,12 +549,12 @@ class _RingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bg = Paint()
-      ..color = const Color(0xFFCBCBCB)
+      ..color = AppColors.lavender
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
     final fg = Paint()
-      ..color = const Color(0xFF2E7D66)
+      ..color = AppColors.orange
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;

@@ -3,6 +3,7 @@ import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/screen/checkout_screen.dart';
+import 'package:food_app/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
@@ -33,13 +34,17 @@ class _CartPageState extends State<CartPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 80,
+                    color: AppColors.lavender,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'Your cart is empty',
                     style: GoogleFonts.inter(
                       fontSize: 18,
-                      color: Colors.grey[600],
+                      color: AppColors.text,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -54,7 +59,10 @@ class _CartPageState extends State<CartPage> {
                     itemBuilder: (context, index) {
                       final item = widget.cartManager.items[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
@@ -69,12 +77,15 @@ class _CartPageState extends State<CartPage> {
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
-                                    width: 80,
-                                    height: 80,
-                                    color: Colors.grey[300],
-                                    child: Icon(Icons.fastfood,
-                                        color: Colors.grey, size: 40),
-                                  ),
+                                        width: 80,
+                                        height: 80,
+                                        color: AppColors.lavender,
+                                        child: Icon(
+                                          Icons.fastfood,
+                                          color: AppColors.ink,
+                                          size: 40,
+                                        ),
+                                      ),
                                 ),
                               ),
                               SizedBox(width: 12),
@@ -97,7 +108,7 @@ class _CartPageState extends State<CartPage> {
                                       '₱${item.product_price.toStringAsFixed(2)}',
                                       style: GoogleFonts.inter(
                                         fontSize: 14,
-                                        color: Colors.grey[700],
+                                        color: AppColors.text,
                                       ),
                                     ),
                                     SizedBox(height: 8),
@@ -106,7 +117,7 @@ class _CartPageState extends State<CartPage> {
                                       style: GoogleFonts.inter(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color.fromARGB(255, 85, 3, 129),
+                                        color: AppColors.text,
                                       ),
                                     ),
                                   ],
@@ -128,11 +139,14 @@ class _CartPageState extends State<CartPage> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: const Color.fromARGB(255, 123, 5, 187),
+                                        color: AppColors.primary,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.add,
-                                          color: Colors.white, size: 16),
+                                      child: Icon(
+                                        Icons.add,
+                                        color: AppColors.surface,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 4),
@@ -157,11 +171,14 @@ class _CartPageState extends State<CartPage> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: const Color.fromARGB(255, 85, 85, 85),
+                                        color: AppColors.primary,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.remove,
-                                          color: Colors.white, size: 16),
+                                      child: Icon(
+                                        Icons.remove,
+                                        color: AppColors.surface,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -177,9 +194,9 @@ class _CartPageState extends State<CartPage> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: AppColors.surface,
                     border: Border(
-                      top: BorderSide(color: Colors.grey[300]!, width: 2),
+                      top: BorderSide(color: AppColors.lavender, width: 2),
                     ),
                   ),
                   child: Column(
@@ -244,7 +261,7 @@ class _CartPageState extends State<CartPage> {
                         ],
                       ),
                       SizedBox(height: 12),
-                      Divider(color: Colors.grey[400], thickness: 1),
+                      Divider(color: AppColors.lavender, thickness: 1),
                       SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -261,7 +278,7 @@ class _CartPageState extends State<CartPage> {
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: const Color.fromARGB(255, 85, 3, 129),
+                              color: AppColors.text,
                             ),
                           ),
                         ],
@@ -279,14 +296,16 @@ class _CartPageState extends State<CartPage> {
                                   cartManager: widget.cartManager,
                                   subtotal: widget.cartManager.totalPrice,
                                   deliveryFee: deliveryFee,
-                                  totalAmount: widget.cartManager.totalPrice + deliveryFee,
+                                  totalAmount:
+                                      widget.cartManager.totalPrice +
+                                      deliveryFee,
                                   totalItems: widget.cartManager.itemCount,
                                 ),
                               ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 85, 3, 129),
+                            backgroundColor: AppColors.primary,
                             padding: EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -297,7 +316,7 @@ class _CartPageState extends State<CartPage> {
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.text,
                             ),
                           ),
                         ),

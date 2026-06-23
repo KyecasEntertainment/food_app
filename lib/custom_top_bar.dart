@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -36,29 +37,33 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 36,
               height: 36,
               clipBehavior: Clip.hardEdge,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-              ),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
               child: ClipOval(
                 child: loggedInUser != null && loggedInUser!.avatar.isNotEmpty
-                  ? Image.asset(
-                      loggedInUser!.avatar,
-                      fit: BoxFit.cover,
-                      width: 36,
-                      height: 36,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[200],
+                    ? Image.asset(
+                        loggedInUser!.avatar,
+                        fit: BoxFit.cover,
+                        width: 36,
+                        height: 36,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.lavender,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.person,
+                            size: 18,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.lavender,
                         alignment: Alignment.center,
-                        child: const Icon(Icons.person,
-                            size: 18, color: Colors.grey),
+                        child: const Icon(
+                          Icons.person,
+                          size: 18,
+                          color: AppColors.ink,
+                        ),
                       ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.person,
-                          size: 18, color: Colors.grey),
-                    ),
               ),
             ),
           ],

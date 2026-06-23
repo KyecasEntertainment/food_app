@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/main.dart';
-class LoginScreen extends StatefulWidget {
+import 'package:food_app/app_colors.dart';
 
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -32,22 +33,22 @@ class _LoginScreenState extends State<LoginScreen> {
   InputDecoration _inputDecoration(String hint, {Widget? suffix}) {
     return InputDecoration(
       filled: true,
-      fillColor: Colors.white.withOpacity(0.7),
+      fillColor: AppColors.surface,
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.grey),
+      hintStyle: const TextStyle(color: AppColors.text),
       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-      errorStyle: const TextStyle(color: Colors.white, fontSize: 14),
+      errorStyle: const TextStyle(color: AppColors.text, fontSize: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide.none,
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Colors.red, width: 2),
+        borderSide: const BorderSide(color: AppColors.orange, width: 2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Colors.red, width: 2),
+        borderSide: const BorderSide(color: AppColors.orange, width: 2),
       ),
       suffixIcon: suffix,
     );
@@ -100,13 +101,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final matchedUser = accounts.firstWhere(
         (acc) => acc.email == email && acc.password == password,
-        orElse: () => UserAccounts(email: '', password: '', name: '', avatar: '', role: ''),
+        orElse: () => UserAccounts(
+          email: '',
+          password: '',
+          name: '',
+          avatar: '',
+          role: '',
+        ),
       );
 
       if (matchedUser.email.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             // Replace the login route with MainScreen passing the logged-in user
@@ -121,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid email or password'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.orange,
           ),
         );
       }
@@ -138,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A4ED8), Color(0xFF6D28D9)],
+            colors: [AppColors.primary, AppColors.ink],
           ),
         ),
         child: SafeArea(
@@ -151,13 +158,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.text,
                   ),
                 ),
                 const SizedBox(height: 40),
                 CircleAvatar(
                   radius: _avatarRadius,
-                  backgroundImage: const AssetImage('assets/logo/app/ChowPremacy.png'),
+                  backgroundImage: const AssetImage(
+                    'assets/logo/app/ChowPremacy.png',
+                  ),
                 ),
                 const SizedBox(height: 50),
 
@@ -181,22 +190,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         validator: _passwordValidator,
                         suffix: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.grey,
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primary,
                           ),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                          onPressed: () => setState(
+                            () => _isPasswordVisible = !_isPasswordVisible,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),
                       ElevatedButton(
                         onPressed: _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          backgroundColor: AppColors.surface,
+                          foregroundColor: AppColors.text,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                        child: const Text('Login', style: TextStyle(fontSize: 16)),
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                       const SizedBox(height: 60),
                     ],
