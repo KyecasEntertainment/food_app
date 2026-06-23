@@ -6,6 +6,7 @@ import 'package:food_app/screen/search_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/cart_item.dart';
+import 'package:food_app/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: AppColors.surface,
       appBar: CustomAppBar(title: 'Menu', loggedInUser: widget.loggedInUser),
       body: SingleChildScrollView(
         child: Column(
@@ -52,26 +53,27 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 160, 160, 160),
+          color: AppColors.lavender,
           borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.primary, width: 2),
         ),
         child: TextField(
           readOnly: true,
+          style: const TextStyle(color: AppColors.text),
+          textAlignVertical: TextAlignVertical.center,
           decoration: InputDecoration(
             border: InputBorder.none,
-            prefixIcon: Icon(
-              Icons.search,
-              color: const Color.fromARGB(255, 99, 99, 99),
-            ),
+            prefixIcon: Icon(Icons.search, color: AppColors.text),
             hintText: 'Search',
             hintStyle: GoogleFonts.inter(
               textStyle: TextStyle(
-                color: const Color.fromARGB(255, 99, 99, 99),
+                color: AppColors.text,
                 fontWeight: FontWeight.w400,
-                fontSize: 16,
+                fontSize: 17,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 15),
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
           ),
           onTap: () {
             Navigator.push(
@@ -96,7 +98,10 @@ class _HomePageState extends State<HomePage> {
       {"name": "All", "image": "assets/food_images/Category/all.png"},
       {"name": "Burgers", "image": "assets/food_images/Category/Burger.png"},
       {"name": "Pizza", "image": "assets/food_images/Category/Pizza.png"},
-      {"name": "Fried Chicken", "image": "assets/food_images/Category/Chicken.png"},
+      {
+        "name": "Fried Chicken",
+        "image": "assets/food_images/Category/Chicken.png",
+      },
       {"name": "Fries", "image": "assets/food_images/Category/Fries.png"},
       {"name": "Drinks", "image": "assets/food_images/Category/Drinks.png"},
     ];
@@ -112,7 +117,7 @@ class _HomePageState extends State<HomePage> {
           final categoryName = category["name"]!;
           final categoryImage = category["image"]!;
           final isSelected = selectedCategory == categoryName;
-          
+
           return GestureDetector(
             onTap: () {
               setState(() {
@@ -126,9 +131,11 @@ class _HomePageState extends State<HomePage> {
                   width: 70,
                   height: 70,
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.purple : Colors.grey[400],
+                    color: isSelected ? AppColors.primary : AppColors.lavender,
                     borderRadius: BorderRadius.circular(15),
-                    border: isSelected ? Border.all(color: Colors.purple, width: 3) : null,
+                    border: isSelected
+                        ? Border.all(color: AppColors.orange, width: 3)
+                        : null,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
@@ -137,8 +144,12 @@ class _HomePageState extends State<HomePage> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey[500],
-                          child: Icon(Icons.fastfood, size: 35, color: Colors.white),
+                          color: AppColors.lavender,
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 35,
+                            color: AppColors.ink,
+                          ),
                         );
                       },
                     ),
@@ -155,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: isSelected ? Colors.purple : Colors.grey[700],
+                      color: AppColors.text,
                     ),
                   ),
                 ),
@@ -179,7 +190,7 @@ class _HomePageState extends State<HomePage> {
             style: GoogleFonts.inter(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppColors.text,
             ),
           ),
           SizedBox(height: 15),
@@ -194,7 +205,7 @@ class _HomePageState extends State<HomePage> {
       height: 150,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple[700]!, Colors.purple[500]!],
+          colors: [AppColors.lavender, AppColors.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -213,7 +224,7 @@ class _HomePageState extends State<HomePage> {
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   width: 150,
-                  child: Icon(Icons.fastfood, size: 80, color: Colors.white70),
+                  child: Icon(Icons.fastfood, size: 80, color: AppColors.text),
                 );
               },
             ),
@@ -229,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.text,
                   ),
                 ),
                 SizedBox(height: 8),
@@ -238,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: AppColors.text,
                     height: 1.3,
                   ),
                 ),
@@ -254,7 +265,9 @@ class _HomePageState extends State<HomePage> {
     // Filter products based on selected category
     List<StoreProducts> filteredProducts = selectedCategory == "All"
         ? products
-        : products.where((p) => p.product_category == selectedCategory).toList();
+        : products
+              .where((p) => p.product_category == selectedCategory)
+              .toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -266,7 +279,7 @@ class _HomePageState extends State<HomePage> {
             style: GoogleFonts.inter(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppColors.text,
             ),
           ),
           SizedBox(height: 15),
@@ -278,7 +291,7 @@ class _HomePageState extends State<HomePage> {
                       'No items in this category',
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.text,
                       ),
                     ),
                   ),
@@ -305,7 +318,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFoodContainer(StoreProducts product) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[600],
+        color: AppColors.ink,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
@@ -324,8 +337,12 @@ class _HomePageState extends State<HomePage> {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 120,
-                      color: Colors.grey[500],
-                      child: Icon(Icons.food_bank, size: 50, color: Colors.white),
+                      color: AppColors.lavender,
+                      child: Icon(
+                        Icons.food_bank,
+                        size: 50,
+                        color: AppColors.ink,
+                      ),
                     );
                   },
                 ),
@@ -344,7 +361,7 @@ class _HomePageState extends State<HomePage> {
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.text,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -355,7 +372,7 @@ class _HomePageState extends State<HomePage> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.text,
                         ),
                       ),
                     ],
@@ -390,14 +407,10 @@ class _HomePageState extends State<HomePage> {
                 width: 35,
                 height: 35,
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: AppColors.orange,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(Icons.add, color: AppColors.surface, size: 20),
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/payment_modes.dart';
 import 'package:food_app/screen/delivery_screen.dart';
+import 'package:food_app/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -33,7 +34,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String deliveryInstructions = '';
   bool contactlessDelivery = false;
   double tipAmount = 0;
-  
 
   late TextEditingController addressNameController;
   late TextEditingController addressDetailController;
@@ -41,9 +41,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   void initState() {
     super.initState();
-    selectedPayment = payments.isNotEmpty ? payments.first.payment_name : 'GCash';
+    selectedPayment = payments.isNotEmpty
+        ? payments.first.payment_name
+        : 'GCash';
     addressNameController = TextEditingController(text: 'Home');
-    addressDetailController = TextEditingController(text: '123 Main Street, Baybay, Los Baños, Laguna');
+    addressDetailController = TextEditingController(
+      text: '123 Main Street, Baybay, Los Baños, Laguna',
+    );
   }
 
   @override
@@ -56,7 +60,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Checkout', loggedInUser: widget.loggedInUser),
+      appBar: CustomAppBar(
+        title: 'Checkout',
+        loggedInUser: widget.loggedInUser,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -103,7 +110,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 85, 3, 129),
+                    backgroundColor: AppColors.primary,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -114,7 +121,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.text,
                     ),
                   ),
                 ),
@@ -133,28 +140,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
       children: [
         Text(
           'Address',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12),
         Container(
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: AppColors.lavender),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Address Name',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: GoogleFonts.inter(fontSize: 12, color: AppColors.text),
               ),
               SizedBox(height: 6),
               TextField(
@@ -163,17 +164,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   hintText: 'e.g., Home, Office',
                 ),
               ),
               SizedBox(height: 12),
               Text(
                 'Full Address',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: GoogleFonts.inter(fontSize: 12, color: AppColors.text),
               ),
               SizedBox(height: 6),
               TextField(
@@ -183,7 +184,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   hintText: 'Enter your complete address',
                 ),
               ),
@@ -200,17 +204,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
       children: [
         Text(
           'Delivery Instructions',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: AppColors.lavender),
           ),
           child: CheckboxListTile(
             value: contactlessDelivery,
@@ -221,9 +222,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             },
             title: Text(
               'Contactless Delivery: your rider will place your delivery at your door',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-              ),
+              style: GoogleFonts.inter(fontSize: 13),
             ),
             controlAffinity: ListTileControlAffinity.leading,
           ),
@@ -232,12 +231,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         TextField(
           decoration: InputDecoration(
             hintText: 'Add delivery instruction (optional)',
-            hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
+            hintStyle: GoogleFonts.inter(color: AppColors.text),
             filled: true,
-            fillColor: Colors.grey[50],
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: AppColors.lavender),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
@@ -258,18 +257,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
       children: [
         Text(
           'Payment Method',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12),
         Container(
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: AppColors.lavender),
           ),
           child: Row(
             children: [
@@ -301,17 +297,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: AppColors.lavender),
                 ),
                 child: Builder(
                   builder: (context) {
                     final logo = payments.isNotEmpty
-                        ? (payments.firstWhere(
-                            (p) => p.payment_name == selectedPayment,
-                            orElse: () => payments.first,
-                          ).payment_logo)
+                        ? (payments
+                              .firstWhere(
+                                (p) => p.payment_name == selectedPayment,
+                                orElse: () => payments.first,
+                              )
+                              .payment_logo)
                         : 'assets/logo/payment_modes/payment_mode_1.png';
 
                     return Image.asset(
@@ -319,8 +317,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey[200],
-                          child: Icon(Icons.credit_card, size: 24, color: Colors.grey),
+                          color: AppColors.lavender,
+                          child: Icon(
+                            Icons.credit_card,
+                            size: 24,
+                            color: AppColors.ink,
+                          ),
                         );
                       },
                     );
@@ -348,7 +350,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Icon(Icons.edit, size: 20, color: Colors.grey[600]),
+            Icon(Icons.edit, size: 20, color: AppColors.primary),
           ],
         ),
         SizedBox(height: 12),
@@ -376,10 +378,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white,
+          color: isSelected ? AppColors.ink : AppColors.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? Colors.black : Colors.grey[300]!,
+            color: isSelected ? AppColors.ink : AppColors.lavender,
             width: 2,
           ),
         ),
@@ -388,7 +390,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.black,
+            color: AppColors.text,
           ),
         ),
       ),
@@ -399,28 +401,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: AppColors.lavender),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Order Summary',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Subtotal',
-                style: GoogleFonts.inter(fontSize: 14),
-              ),
+              Text('Subtotal', style: GoogleFonts.inter(fontSize: 14)),
               Text(
                 '₱${widget.subtotal.toStringAsFixed(2)}',
                 style: GoogleFonts.inter(fontSize: 14),
@@ -431,10 +427,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Delivery Fee',
-                style: GoogleFonts.inter(fontSize: 14),
-              ),
+              Text('Delivery Fee', style: GoogleFonts.inter(fontSize: 14)),
               Text(
                 '₱${widget.deliveryFee.toStringAsFixed(2)}',
                 style: GoogleFonts.inter(fontSize: 14),
@@ -446,10 +439,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Tip',
-                  style: GoogleFonts.inter(fontSize: 14),
-                ),
+                Text('Tip', style: GoogleFonts.inter(fontSize: 14)),
                 Text(
                   '₱${tipAmount.toStringAsFixed(2)}',
                   style: GoogleFonts.inter(fontSize: 14),
@@ -473,7 +463,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 85, 3, 129),
+                  color: AppColors.text,
                 ),
               ),
             ],

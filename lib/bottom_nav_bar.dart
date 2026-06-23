@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:food_app/app_colors.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -17,25 +17,14 @@ class BottomNavigation extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
       onTap: onTap,
-      selectedItemColor: const Color.fromARGB(255, 85, 3, 129),
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: AppColors.text,
+      unselectedItemColor: AppColors.primary,
+      backgroundColor: AppColors.surface,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: 'Search',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );
   }
