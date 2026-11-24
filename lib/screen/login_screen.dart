@@ -33,22 +33,22 @@ class _LoginScreenState extends State<LoginScreen> {
   InputDecoration _inputDecoration(String hint, {Widget? suffix}) {
     return InputDecoration(
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: AppColors.card,
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.text),
+      hintStyle: const TextStyle(color: AppColors.textSecondary),
       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-      errorStyle: const TextStyle(color: AppColors.text, fontSize: 14),
+      errorStyle: const TextStyle(color: AppColors.error, fontSize: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide.none,
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.orange, width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.orange, width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
       suffixIcon: suffix,
     );
@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid email or password'),
-            backgroundColor: AppColors.orange,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.ink],
+            colors: [AppColors.primary, AppColors.primaryPressed],
           ),
         ),
         child: SafeArea(
@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.text,
+                    color: AppColors.textOnPrimary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -204,8 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ElevatedButton(
                         onPressed: _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.surface,
-                          foregroundColor: AppColors.text,
+                          backgroundColor: AppColors.card,
+                          foregroundColor: AppColors.textPrimary,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 40,
                             vertical: 12,

@@ -7,6 +7,7 @@ import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/cart_item.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/product_search_field.dart';
 
 class HomePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -23,15 +24,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: CustomAppBar(title: 'Menu', loggedInUser: widget.loggedInUser),
+      backgroundColor: AppColors.background,
+      appBar: CustomAppBar(
+        showAddress: true,
+        loggedInUser: widget.loggedInUser,
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Search Bar
             _buildSearchBar(),
-            SizedBox(height: 20),
+            SizedBox(height: 10),
             // Food Category
             _buildFoodCategory(),
             SizedBox(height: 20),
@@ -47,49 +51,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      padding: EdgeInsets.only(top: 20, left: 20, right: 20),
-      alignment: Alignment.topCenter,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: AppColors.lavender,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.primary, width: 2),
-        ),
-        child: TextField(
-          readOnly: true,
-          style: const TextStyle(color: AppColors.text),
-          textAlignVertical: TextAlignVertical.center,
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            prefixIcon: Icon(Icons.search, color: AppColors.text),
-            hintText: 'Search',
-            hintStyle: GoogleFonts.inter(
-              textStyle: TextStyle(
-                color: AppColors.text,
-                fontWeight: FontWeight.w400,
-                fontSize: 17,
-              ),
+    return ProductSearchField(
+      readOnly: true,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchPage(
+              loggedInUser: widget.loggedInUser,
+              autoFocus: true,
+              cartManager: widget.cartManager,
+              showBackButton: true,
             ),
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SearchPage(
-                  loggedInUser: widget.loggedInUser,
-                  autoFocus: true,
-                  cartManager: widget.cartManager,
-                  showBackButton: true,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -107,10 +83,10 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return SizedBox(
-      height: 110,
+      height: 48,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
@@ -118,63 +94,63 @@ class _HomePageState extends State<HomePage> {
           final categoryImage = category["image"]!;
           final isSelected = selectedCategory == categoryName;
 
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedCategory = categoryName;
-              });
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : AppColors.lavender,
-                    borderRadius: BorderRadius.circular(15),
-                    border: isSelected
-                        ? Border.all(color: AppColors.orange, width: 3)
-                        : null,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      categoryImage,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppColors.lavender,
-                          child: Icon(
-                            Icons.fastfood,
-                            size: 35,
-                            color: AppColors.ink,
-                          ),
-                        );
-                      },
+          return Material(
+            color: isSelected ? AppColors.primary : AppColors.surface,
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: isSelected ? AppColors.primary : AppColors.border,
+              ),
+            ),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: () => setState(() => selectedCategory = categoryName),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: categoryName == 'All'
+                          ? Icon(
+                              Icons.apps_rounded,
+                              size: 22,
+                              color: isSelected
+                                  ? AppColors.textOnPrimary
+                                  : AppColors.textPrimary,
+                            )
+                          : Image.asset(
+                              categoryImage,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.fastfood,
+                                    size: 22,
+                                    color: isSelected
+                                        ? AppColors.textOnPrimary
+                                        : AppColors.textPrimary,
+                                  ),
+                            ),
                     ),
-                  ),
-                ),
-                SizedBox(height: 5),
-                SizedBox(
-                  width: 70,
-                  child: Text(
-                    categoryName,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.text,
+                    const SizedBox(width: 8),
+                    Text(
+                      categoryName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? AppColors.textOnPrimary
+                            : AppColors.textPrimary,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
-        separatorBuilder: (_, __) => SizedBox(width: 10),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
       ),
     );
   }
@@ -184,18 +160,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Promotions',
-            style: GoogleFonts.inter(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.text,
-            ),
-          ),
-          SizedBox(height: 15),
-          _buildPromoBar(),
-        ],
+        children: [_buildPromoBar()],
       ),
     );
   }
@@ -203,9 +168,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPromoBar() {
     return Container(
       height: 150,
+      width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.lavender, AppColors.primary],
+          colors: [AppColors.primary, AppColors.primaryPressed],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -224,7 +190,11 @@ class _HomePageState extends State<HomePage> {
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   width: 150,
-                  child: Icon(Icons.fastfood, size: 80, color: AppColors.text),
+                  child: Icon(
+                    Icons.fastfood,
+                    size: 80,
+                    color: AppColors.textOnPrimary,
+                  ),
                 );
               },
             ),
@@ -237,19 +207,19 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   "Today's Offer",
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.text,
+                    color: AppColors.textOnPrimary,
                   ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Free Medium Fries\nfor Orders Above\n₱300',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.text,
+                    color: AppColors.textOnPrimary,
                     height: 1.3,
                   ),
                 ),
@@ -276,10 +246,10 @@ class _HomePageState extends State<HomePage> {
         children: [
           Text(
             'Popular',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.text,
+              color: AppColors.textPrimary,
             ),
           ),
           SizedBox(height: 15),
@@ -289,9 +259,9 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(20),
                     child: Text(
                       'No items in this category',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
-                        color: AppColors.text,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -318,7 +288,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFoodContainer(StoreProducts product) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.ink,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
@@ -337,11 +307,11 @@ class _HomePageState extends State<HomePage> {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 120,
-                      color: AppColors.lavender,
+                      color: AppColors.surface,
                       child: Icon(
                         Icons.food_bank,
                         size: 50,
-                        color: AppColors.ink,
+                        color: AppColors.textPrimary,
                       ),
                     );
                   },
@@ -358,10 +328,10 @@ class _HomePageState extends State<HomePage> {
                       Flexible(
                         child: Text(
                           product.product_name,
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.text,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -369,10 +339,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Text(
                         '₱${product.product_price.toStringAsFixed(2)}',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.text,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -407,10 +377,10 @@ class _HomePageState extends State<HomePage> {
                 width: 35,
                 height: 35,
                 decoration: BoxDecoration(
-                  color: AppColors.orange,
+                  color: AppColors.accent,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.add, color: AppColors.surface, size: 20),
+                child: Icon(Icons.add, color: AppColors.textPrimary, size: 20),
               ),
             ),
           ),

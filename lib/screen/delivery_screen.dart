@@ -112,7 +112,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lavender,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           SafeArea(
@@ -129,14 +129,14 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.card,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.ink.withValues(alpha: 0.08),
+                      color: AppColors.textPrimary.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
                     ),
@@ -154,7 +154,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         width: 60,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: AppColors.lavender,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -183,7 +183,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       height: 180,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDelivered ? AppColors.orange : AppColors.primary,
+        color: isDelivered ? AppColors.success : AppColors.primary,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
@@ -200,7 +200,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                             ? "Thank you for your order!"
                             : "Your order has arrived!",
                         style: const TextStyle(
-                          color: AppColors.surface,
+                          color: AppColors.textOnPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -211,8 +211,8 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         ElevatedButton(
                           onPressed: _onOrderReceived,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.surface,
-                            foregroundColor: AppColors.text,
+                            backgroundColor: AppColors.card,
+                            foregroundColor: AppColors.textPrimary,
                             padding: const EdgeInsets.symmetric(
                               vertical: 12,
                               horizontal: 18,
@@ -229,7 +229,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     child: Text(
                       "${_formatRemainingTime()}\nOrder is On\nthe Way",
                       style: const TextStyle(
-                        color: AppColors.text,
+                        color: AppColors.textOnPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         height: 1.28,
@@ -257,7 +257,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                       alignment: Alignment.center,
                       child: const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.surface,
+                          AppColors.textOnPrimary,
                         ),
                         strokeWidth: 4,
                       ),
@@ -269,7 +269,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                       child: const Icon(
                         Icons.check_circle,
                         size: 72,
-                        color: AppColors.text,
+                        color: AppColors.textOnPrimary,
                       ),
                     )
                   : LoadingProgressRing(
@@ -291,9 +291,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lavender),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
@@ -311,7 +311,10 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4),
-                Text("Motorbike", style: TextStyle(color: AppColors.text)),
+                Text(
+                  "Motorbike",
+                  style: TextStyle(color: AppColors.textPrimary),
+                ),
               ],
             ),
           ),
@@ -325,9 +328,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lavender),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +343,10 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Items:", style: TextStyle(color: AppColors.text)),
+              const Text(
+                "Items:",
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
               Text(
                 "${widget.totalItems}",
                 style: const TextStyle(fontWeight: FontWeight.w500),
@@ -351,7 +357,10 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Subtotal:", style: TextStyle(color: AppColors.text)),
+              const Text(
+                "Subtotal:",
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
               Text(
                 "₱${widget.subtotal.toStringAsFixed(2)}",
                 style: const TextStyle(fontWeight: FontWeight.w500),
@@ -364,7 +373,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             children: [
               const Text(
                 "Delivery Fee:",
-                style: TextStyle(color: AppColors.text),
+                style: TextStyle(color: AppColors.textPrimary),
               ),
               Text(
                 "₱${widget.deliveryFee.toStringAsFixed(2)}",
@@ -386,7 +395,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                       children: [
                         const Text(
                           "Tip:",
-                          style: TextStyle(color: AppColors.text),
+                          style: TextStyle(color: AppColors.textPrimary),
                         ),
                         Text(
                           "₱${tip.toStringAsFixed(2)}",
@@ -413,7 +422,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.text,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -429,7 +438,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       decoration: InputDecoration(
         hintText: "Chat with your rider",
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.card,
         prefixIcon: const Icon(Icons.chat_bubble_outline),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 14,
@@ -549,12 +558,12 @@ class _RingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bg = Paint()
-      ..color = AppColors.lavender
+      ..color = AppColors.border
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
     final fg = Paint()
-      ..color = AppColors.orange
+      ..color = AppColors.primary
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;

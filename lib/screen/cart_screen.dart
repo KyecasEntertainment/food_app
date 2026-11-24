@@ -28,7 +28,10 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Cart', loggedInUser: widget.loggedInUser),
+      appBar: CustomAppBar(
+        showAddress: true,
+        loggedInUser: widget.loggedInUser,
+      ),
       body: widget.cartManager.items.isEmpty
           ? Center(
               child: Column(
@@ -37,14 +40,14 @@ class _CartPageState extends State<CartPage> {
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 80,
-                    color: AppColors.lavender,
+                    color: AppColors.textSecondary,
                   ),
                   SizedBox(height: 16),
                   Text(
                     'Your cart is empty',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
-                      color: AppColors.text,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -79,10 +82,10 @@ class _CartPageState extends State<CartPage> {
                                       Container(
                                         width: 80,
                                         height: 80,
-                                        color: AppColors.lavender,
+                                        color: AppColors.surface,
                                         child: Icon(
                                           Icons.fastfood,
-                                          color: AppColors.ink,
+                                          color: AppColors.textPrimary,
                                           size: 40,
                                         ),
                                       ),
@@ -96,7 +99,7 @@ class _CartPageState extends State<CartPage> {
                                   children: [
                                     Text(
                                       item.product_name,
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -106,18 +109,18 @@ class _CartPageState extends State<CartPage> {
                                     SizedBox(height: 4),
                                     Text(
                                       '₱${item.product_price.toStringAsFixed(2)}',
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 14,
-                                        color: AppColors.text,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                     SizedBox(height: 8),
                                     Text(
                                       'Subtotal: ₱${item.subtotal.toStringAsFixed(2)}',
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.text,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ],
@@ -144,7 +147,7 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                       child: Icon(
                                         Icons.add,
-                                        color: AppColors.surface,
+                                        color: AppColors.textOnPrimary,
                                         size: 16,
                                       ),
                                     ),
@@ -152,7 +155,7 @@ class _CartPageState extends State<CartPage> {
                                   SizedBox(height: 4),
                                   Text(
                                     '${item.quantity}',
-                                    style: GoogleFonts.inter(
+                                    style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -176,7 +179,7 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                       child: Icon(
                                         Icons.remove,
-                                        color: AppColors.surface,
+                                        color: AppColors.textOnPrimary,
                                         size: 16,
                                       ),
                                     ),
@@ -194,9 +197,9 @@ class _CartPageState extends State<CartPage> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppColors.card,
                     border: Border(
-                      top: BorderSide(color: AppColors.lavender, width: 2),
+                      top: BorderSide(color: AppColors.border, width: 2),
                     ),
                   ),
                   child: Column(
@@ -206,14 +209,14 @@ class _CartPageState extends State<CartPage> {
                         children: [
                           Text(
                             'Total Items:',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
                             '${widget.cartManager.itemCount}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -226,14 +229,14 @@ class _CartPageState extends State<CartPage> {
                         children: [
                           Text(
                             'Subtotal:',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
                             '₱${widget.cartManager.totalPrice.toStringAsFixed(2)}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -246,14 +249,14 @@ class _CartPageState extends State<CartPage> {
                         children: [
                           Text(
                             'Delivery Fee:',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
                             '₱${deliveryFee.toStringAsFixed(2)}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -261,24 +264,24 @@ class _CartPageState extends State<CartPage> {
                         ],
                       ),
                       SizedBox(height: 12),
-                      Divider(color: AppColors.lavender, thickness: 1),
+                      Divider(color: AppColors.border, thickness: 1),
                       SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Total Amount:',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             '₱${(widget.cartManager.totalPrice + deliveryFee).toStringAsFixed(2)}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.text,
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -305,7 +308,6 @@ class _CartPageState extends State<CartPage> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
                             padding: EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -313,10 +315,10 @@ class _CartPageState extends State<CartPage> {
                           ),
                           child: Text(
                             'Checkout',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.text,
+                              color: AppColors.textOnPrimary,
                             ),
                           ),
                         ),

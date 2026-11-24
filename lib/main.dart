@@ -8,6 +8,7 @@ import 'package:food_app/screen/login_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const Main());
@@ -22,33 +23,62 @@ class Main extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Bottom Navigation App',
       theme: ThemeData(
+        fontFamily: GoogleFonts.poppins().fontFamily,
         colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
-          secondary: AppColors.orange,
-          tertiary: AppColors.lavender,
-          surface: AppColors.surface,
-          onPrimary: AppColors.text,
-          onSecondary: AppColors.ink,
-          onSurface: AppColors.text,
-          error: AppColors.orange,
-          onError: AppColors.ink,
+          primaryContainer: AppColors.surface,
+          onPrimaryContainer: AppColors.textPrimary,
+          secondary: AppColors.accent,
+          secondaryContainer: AppColors.surface,
+          onSecondaryContainer: AppColors.textPrimary,
+          tertiary: AppColors.info,
+          onTertiary: AppColors.textOnPrimary,
+          tertiaryContainer: AppColors.surface,
+          onTertiaryContainer: AppColors.textPrimary,
+          surface: AppColors.card,
+          surfaceContainerLowest: AppColors.card,
+          surfaceContainerLow: AppColors.background,
+          surfaceContainer: AppColors.surface,
+          surfaceContainerHigh: AppColors.surface,
+          surfaceContainerHighest: AppColors.surface,
+          onPrimary: AppColors.textOnPrimary,
+          onSecondary: AppColors.textPrimary,
+          onSurface: AppColors.textPrimary,
+          onSurfaceVariant: AppColors.textSecondary,
+          outline: AppColors.border,
+          outlineVariant: AppColors.border,
+          error: AppColors.error,
+          onError: AppColors.textOnPrimary,
+          errorContainer: AppColors.surface,
+          onErrorContainer: AppColors.error,
         ),
-        scaffoldBackgroundColor: AppColors.surface,
+        scaffoldBackgroundColor: AppColors.background,
+        dividerColor: AppColors.border,
         appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.surface,
-          foregroundColor: AppColors.text,
+          backgroundColor: AppColors.background,
+          foregroundColor: AppColors.textPrimary,
         ),
-        cardColor: AppColors.surface,
-        textTheme: ThemeData.light().textTheme.apply(
-          bodyColor: AppColors.text,
-          displayColor: AppColors.text,
-        ),
+        cardColor: AppColors.card,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme)
+            .apply(
+              bodyColor: AppColors.textPrimary,
+              displayColor: AppColors.textPrimary,
+            ),
         inputDecorationTheme: const InputDecorationTheme(
-          labelStyle: TextStyle(color: AppColors.text),
-          hintStyle: TextStyle(color: AppColors.text),
+          labelStyle: TextStyle(color: AppColors.textPrimary),
+          hintStyle: TextStyle(color: AppColors.textSecondary),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(foregroundColor: AppColors.text),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.pressed)
+                  ? AppColors.primaryPressed
+                  : AppColors.primary,
+            ),
+            foregroundColor: const WidgetStatePropertyAll(
+              AppColors.textOnPrimary,
+            ),
+          ),
         ),
         useMaterial3: true,
       ),

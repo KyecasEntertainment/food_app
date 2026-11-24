@@ -5,6 +5,7 @@ import 'package:food_app/database/product_list.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/cart_item.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/product_search_field.dart';
 
 class SearchPage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -59,49 +60,15 @@ class _SearchPageState extends State<SearchPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Search',
+        showAddress: true,
         loggedInUser: widget.loggedInUser,
         showBackButton: widget.showBackButton,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              focusNode: _searchFocusNode,
-              style: const TextStyle(color: AppColors.text),
-              decoration: InputDecoration(
-                hintText: 'Search products...',
-                hintStyle: const TextStyle(color: AppColors.text),
-                prefixIcon: const Icon(Icons.search, color: AppColors.text),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  searchText = value;
-                });
-              },
-            ),
+          ProductSearchField(
+            focusNode: _searchFocusNode,
+            onChanged: (value) => setState(() => searchText = value),
           ),
           Expanded(
             child: ListView.builder(
@@ -109,7 +76,7 @@ class _SearchPageState extends State<SearchPage> {
               itemBuilder: (context, index) {
                 final product = filteredProducts[index];
                 return Card(
-                  color: AppColors.ink,
+                  color: AppColors.card,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -128,18 +95,21 @@ class _SearchPageState extends State<SearchPage> {
                         errorBuilder: (context, error, stackTrace) => Container(
                           width: 50,
                           height: 50,
-                          color: AppColors.lavender,
-                          child: Icon(Icons.fastfood, color: AppColors.ink),
+                          color: AppColors.surface,
+                          child: Icon(
+                            Icons.fastfood,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ),
                     title: Text(
                       product.product_name,
-                      style: const TextStyle(color: AppColors.text),
+                      style: const TextStyle(color: AppColors.textPrimary),
                     ),
                     subtitle: Text(
                       product.product_category,
-                      style: const TextStyle(color: AppColors.text),
+                      style: const TextStyle(color: AppColors.textPrimary),
                     ),
                     trailing: GestureDetector(
                       onTap: () {
@@ -163,12 +133,12 @@ class _SearchPageState extends State<SearchPage> {
                       child: Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.orange,
+                          color: AppColors.accent,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.add,
-                          color: AppColors.surface,
+                          color: AppColors.textPrimary,
                           size: 18,
                         ),
                       ),

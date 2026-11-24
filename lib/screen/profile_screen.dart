@@ -379,7 +379,7 @@ class _ProfilePage extends State<ProfilePage> {
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.orange,
+                  backgroundColor: AppColors.error,
                 ),
                 onPressed: () {
                   setState(() {
@@ -396,7 +396,7 @@ class _ProfilePage extends State<ProfilePage> {
                 },
                 child: const Text(
                   "Confirm Remove",
-                  style: TextStyle(color: AppColors.text),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
             ),
@@ -414,8 +414,11 @@ class _ProfilePage extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: CustomAppBar(title: 'Profile', loggedInUser: widget.loggedInUser),
+      backgroundColor: AppColors.background,
+      appBar: CustomAppBar(
+        showAddress: true,
+        loggedInUser: widget.loggedInUser,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -427,12 +430,16 @@ class _ProfilePage extends State<ProfilePage> {
               Center(
                 child: CircleAvatar(
                   radius: 70,
-                  backgroundColor: AppColors.lavender,
+                  backgroundColor: AppColors.surface,
                   backgroundImage: widget.loggedInUser != null
                       ? AssetImage(widget.loggedInUser!.avatar)
                       : null,
                   child: widget.loggedInUser == null
-                      ? const Icon(Icons.person, size: 70, color: AppColors.ink)
+                      ? const Icon(
+                          Icons.person,
+                          size: 70,
+                          color: AppColors.textPrimary,
+                        )
                       : null,
                 ),
               ),
@@ -444,7 +451,7 @@ class _ProfilePage extends State<ProfilePage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.text,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -473,7 +480,7 @@ class _ProfilePage extends State<ProfilePage> {
                     onSave: (v) => setState(() => email = v),
                   );
                 },
-                badge: _buildBadge("Verify", AppColors.orange),
+                badge: _buildBadge("Verify", AppColors.accent),
               ),
 
               const SizedBox(height: 12),
@@ -488,7 +495,7 @@ class _ProfilePage extends State<ProfilePage> {
                     onSave: (v) => setState(() => contact = v),
                   );
                 },
-                badge: _buildBadge("Verified", AppColors.primary),
+                badge: _buildBadge("Verified", AppColors.success),
               ),
 
               const SizedBox(height: 30),
@@ -505,7 +512,7 @@ class _ProfilePage extends State<ProfilePage> {
                 _actionButton(
                   "Add Product",
                   Icons.add,
-                  AppColors.orange,
+                  AppColors.accent,
                   _openAddProductPopup,
                 ),
                 const SizedBox(height: 10),
@@ -521,7 +528,7 @@ class _ProfilePage extends State<ProfilePage> {
                 _actionButton(
                   "Remove Product",
                   Icons.delete,
-                  AppColors.ink,
+                  AppColors.error,
                   _openRemoveProductPopup,
                 ),
 
@@ -551,7 +558,10 @@ class _ProfilePage extends State<ProfilePage> {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textOnPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Row(
@@ -561,14 +571,14 @@ class _ProfilePage extends State<ProfilePage> {
                   value,
                   style: const TextStyle(
                     fontSize: 17,
-                    color: AppColors.text,
+                    color: AppColors.textOnPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               GestureDetector(
                 onTap: onEdit,
-                child: const Icon(Icons.edit, color: AppColors.surface),
+                child: const Icon(Icons.edit, color: AppColors.textOnPrimary),
               ),
             ],
           ),
@@ -587,7 +597,12 @@ class _ProfilePage extends State<ProfilePage> {
       ),
       child: Text(
         text,
-        style: const TextStyle(color: AppColors.text, fontSize: 12),
+        style: TextStyle(
+          color: color == AppColors.accent
+              ? AppColors.textPrimary
+              : AppColors.textOnPrimary,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -609,11 +624,18 @@ class _ProfilePage extends State<ProfilePage> {
           ),
         ),
         onPressed: onTap,
-        icon: Icon(icon, color: AppColors.text),
+        icon: Icon(
+          icon,
+          color: color == AppColors.accent
+              ? AppColors.textPrimary
+              : AppColors.textOnPrimary,
+        ),
         label: Text(
           text,
-          style: const TextStyle(
-            color: AppColors.text,
+          style: TextStyle(
+            color: color == AppColors.accent
+                ? AppColors.textPrimary
+                : AppColors.textOnPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
