@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isPasswordVisible = false;
 
-  static const double _horizontalPadding = 40.0;
+  static const double _horizontalPadding = 16.0;
   // Avatar radius (single circle)
   static const double _avatarRadius = 80.0;
   // Maximum width for input fields to avoid overly wide inputs on large screens
@@ -30,33 +30,39 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  InputDecoration _inputDecoration(String hint, {Widget? suffix}) {
+  InputDecoration _inputDecoration(
+    String hint, {
+    required IconData icon,
+    Widget? suffix,
+  }) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+    );
+    final errorBorder = border.copyWith(
+      borderSide: const BorderSide(color: AppColors.error, width: 2),
+    );
+
     return InputDecoration(
       filled: true,
       fillColor: AppColors.card,
       hintText: hint,
       hintStyle: const TextStyle(color: AppColors.textSecondary),
-      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-      errorStyle: const TextStyle(color: AppColors.error, fontSize: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide.none,
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
-      ),
+      prefixIcon: Icon(icon, color: AppColors.textPrimary),
       suffixIcon: suffix,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border,
+      errorBorder: errorBorder,
+      focusedErrorBorder: errorBorder,
+      errorStyle: const TextStyle(color: AppColors.textOnPrimary, fontSize: 14),
     );
   }
 
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
+    required IconData icon,
     required String? Function(String?) validator,
     bool obscure = false,
     Widget? suffix,
@@ -70,10 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
           constraints: const BoxConstraints(maxWidth: _inputMaxWidth),
           child: TextFormField(
             controller: controller,
+            style: const TextStyle(color: AppColors.textPrimary),
             obscureText: obscure,
             keyboardType: keyboardType,
             textInputAction: textInputAction,
-            decoration: _inputDecoration(hint, suffix: suffix),
+            decoration: _inputDecoration(hint, icon: icon, suffix: suffix),
             validator: validator,
           ),
         ),
@@ -177,6 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildTextField(
                         controller: _emailController,
                         hint: 'Email',
+                        icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         validator: _emailValidator,
@@ -185,6 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildTextField(
                         controller: _passwordController,
                         hint: 'Password',
+                        icon: Icons.lock_outline,
                         obscure: !_isPasswordVisible,
                         textInputAction: TextInputAction.done,
                         validator: _passwordValidator,

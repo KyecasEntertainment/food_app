@@ -1,642 +1,454 @@
 import 'package:flutter/material.dart';
-import 'package:food_app/database/user_accounts.dart';
-import 'package:food_app/database/product_list.dart';
-import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/custom_top_bar.dart';
+import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/delivery_address.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
+  final VoidCallback onCartPressed;
 
-  const ProfilePage({super.key, this.loggedInUser});
+  const ProfilePage({
+    super.key,
+    this.loggedInUser,
+    required this.onCartPressed,
+  });
 
   @override
-  State<ProfilePage> createState() => _ProfilePage();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePage extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> {
   late String name;
   late String email;
   late String contact;
 
-  // Use the actual products list from product_list.dart
-  late List<StoreProducts> productList;
-
   @override
   void initState() {
     super.initState();
-    // Initialize product list from the global products list
-    productList = List.from(products);
-
-    if (widget.loggedInUser != null) {
-      name = widget.loggedInUser!.name;
-      email = widget.loggedInUser!.email;
-      contact = "+639934229236";
-    } else {
-      name = "John Doe";
-      email = "johndoe@example.com";
-      contact = "+639934229236";
-    }
+    name = widget.loggedInUser?.name ?? 'John Doe';
+    email = widget.loggedInUser?.email ?? 'johndoe@example.com';
+    contact = '+639934229236';
   }
 
-  // Input decoration
-  InputDecoration _input(String label) {
-    return InputDecoration(
-      labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    );
-  }
-
-  // -------------------------------------------------------------
-  // REUSED BOTTOM SHEET FOR EDITING PERSONAL INFO
-  // -------------------------------------------------------------
-  void _openEditBottomSheet({
-    required String title,
-    required String currentValue,
-    required Function(String) onSave,
-  }) {
-    final controller = TextEditingController(text: currentValue);
-
-    showModalBottomSheet(
+  Future<void> _editField({
+    required String label,
+    required String value,
+    required ValueChanged<String> onSaved,
+    TextInputType keyboardType = TextInputType.text,
+  }) async {
+    final updated = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
-          top: 25,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextField(controller: controller, decoration: _input(title)),
-            const SizedBox(height: 25),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  onSave(controller.text);
-                  Navigator.pop(context);
-                },
-                child: const Text("Save"),
-              ),
-            ),
-            const SizedBox(height: 25),
-          ],
-        ),
+      builder: (context) => _EditFieldSheet(
+        label: label,
+        initialValue: value,
+        keyboardType: keyboardType,
       ),
     );
+
+    if (mounted && updated != null) onSaved(updated);
   }
 
-  // -------------------------------------------------------------
-  // POPUP: ADD PRODUCT
-  // -------------------------------------------------------------
-  void _openAddProductPopup() {
-    String productName = "";
-    String productCategory = "Burgers";
-    double productPrice = 0.0;
-    String productImage = "";
-    final categories = ["Burgers", "Pizza", "Fried Chicken", "Fries", "Drinks"];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
-          top: 25,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Add Product",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              decoration: _input("Product Name"),
-              onChanged: (v) => productName = v,
-            ),
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              value: productCategory,
-              items: categories
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
-              onChanged: (v) => productCategory = v ?? "Burgers",
-              decoration: _input("Category"),
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              decoration: _input("Price"),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (v) => productPrice = double.tryParse(v) ?? 0.0,
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              decoration: _input("Image Path"),
-              onChanged: (v) => productImage = v,
-            ),
-            const SizedBox(height: 12),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (productName.isNotEmpty && productPrice > 0) {
-                    setState(() {
-                      final newId =
-                          (productList.isEmpty
-                              ? 0
-                              : productList.last.product_id) +
-                          1;
-                      final newProduct = StoreProducts(
-                        product_id: newId,
-                        product_category: productCategory,
-                        product_name: productName,
-                        product_image: productImage.isNotEmpty
-                            ? productImage
-                            : "assets/food_images/Category/all.png",
-                        product_price: productPrice,
-                      );
-                      productList.add(newProduct);
-                      // Update global products list
-                      products.add(newProduct);
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Product added successfully!"),
-                      ),
-                    );
-                  }
-                },
-                child: const Text("Confirm"),
-              ),
-            ),
-            const SizedBox(height: 25),
-          ],
-        ),
-      ),
-    );
+  void _logOut() {
+    DeliveryAddress.current.value = DeliveryAddress.defaultAddress;
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
-  // -------------------------------------------------------------
-  // POPUP: EDIT PRODUCT
-  // -------------------------------------------------------------
-  void _openEditProductPopup() {
-    if (productList.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("No products to edit")));
-      return;
-    }
-
-    late StoreProducts selectedProduct = productList.first;
-    late String newName = selectedProduct.product_name;
-    late double newPrice = selectedProduct.product_price;
-    late String newCategory = selectedProduct.product_category;
-    final categories = ["Burgers", "Pizza", "Fried Chicken", "Fries", "Drinks"];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
-          top: 25,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Edit Product",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            DropdownButtonFormField<StoreProducts>(
-              value: selectedProduct,
-              items: productList
-                  .map(
-                    (p) =>
-                        DropdownMenuItem(value: p, child: Text(p.product_name)),
-                  )
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) {
-                  selectedProduct = v;
-                  newName = v.product_name;
-                  newPrice = v.product_price;
-                  newCategory = v.product_category;
-                }
-              },
-              decoration: _input("Choose Product"),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              decoration: _input("New Name"),
-              controller: TextEditingController(text: newName),
-              onChanged: (v) => newName = v,
-            ),
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              value: newCategory,
-              items: categories
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
-              onChanged: (v) => newCategory = v ?? newCategory,
-              decoration: _input("Category"),
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              decoration: _input("New Price"),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              controller: TextEditingController(text: newPrice.toString()),
-              onChanged: (v) => newPrice = double.tryParse(v) ?? newPrice,
-            ),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    final index = productList.indexOf(selectedProduct);
-                    final updatedProduct = StoreProducts(
-                      product_id: selectedProduct.product_id,
-                      product_category: newCategory,
-                      product_name: newName,
-                      product_image: selectedProduct.product_image,
-                      product_price: newPrice,
-                    );
-                    productList[index] = updatedProduct;
-                    // Update global products list
-                    final globalIndex = products.indexOf(selectedProduct);
-                    if (globalIndex != -1) {
-                      products[globalIndex] = updatedProduct;
-                    }
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Product updated successfully!"),
-                    ),
-                  );
-                },
-                child: const Text("Confirm Changes"),
-              ),
-            ),
-            const SizedBox(height: 25),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------------------------------------
-  // POPUP: REMOVE PRODUCT
-  // -------------------------------------------------------------
-  void _openRemoveProductPopup() {
-    if (productList.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("No products to remove")));
-      return;
-    }
-
-    late StoreProducts selectedProduct = productList.first;
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Remove Product",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            DropdownButtonFormField<StoreProducts>(
-              value: selectedProduct,
-              items: productList
-                  .map(
-                    (p) =>
-                        DropdownMenuItem(value: p, child: Text(p.product_name)),
-                  )
-                  .toList(),
-              onChanged: (v) => selectedProduct = v ?? selectedProduct,
-              decoration: _input("Select Product"),
-            ),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
-                ),
-                onPressed: () {
-                  setState(() {
-                    productList.remove(selectedProduct);
-                    // Update global products list
-                    products.remove(selectedProduct);
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Product removed successfully!"),
-                    ),
-                  );
-                },
-                child: const Text(
-                  "Confirm Remove",
-                  style: TextStyle(color: AppColors.textOnPrimary),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------------------------------------
-  // UI
-  // -------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         showAddress: true,
-        loggedInUser: widget.loggedInUser,
+        onCartPressed: widget.onCartPressed,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 15),
-
-              Center(
-                child: CircleAvatar(
-                  radius: 70,
-                  backgroundColor: AppColors.surface,
-                  backgroundImage: widget.loggedInUser != null
-                      ? AssetImage(widget.loggedInUser!.avatar)
-                      : null,
-                  child: widget.loggedInUser == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 70,
-                          color: AppColors.textPrimary,
-                        )
-                      : null,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+          children: [
+            _profileHero(),
+            const SizedBox(height: 28),
+            _sectionHeading('Personal details', 'Tap a field to update it'),
+            const SizedBox(height: 12),
+            Material(
+              color: AppColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: AppColors.border),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  _detailRow(
+                    icon: Icons.person_outline,
+                    label: 'Full name',
+                    value: name,
+                    onTap: () => _editField(
+                      label: 'Full name',
+                      value: name,
+                      onSaved: (value) => setState(() => name = value),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 68, endIndent: 16),
+                  _detailRow(
+                    icon: Icons.mail_outline,
+                    label: 'Email address',
+                    value: email,
+                    onTap: () => _editField(
+                      label: 'Email address',
+                      value: email,
+                      keyboardType: TextInputType.emailAddress,
+                      onSaved: (value) => setState(() => email = value),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 68, endIndent: 16),
+                  _detailRow(
+                    icon: Icons.phone_outlined,
+                    label: 'Phone number',
+                    value: contact,
+                    onTap: () => _editField(
+                      label: 'Phone number',
+                      value: contact,
+                      keyboardType: TextInputType.phone,
+                      onSaved: (value) => setState(() => contact = value),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+            _sectionHeading('Delivery', 'Your saved delivery location'),
+            const SizedBox(height: 12),
+            ValueListenableBuilder<String>(
+              valueListenable: DeliveryAddress.current,
+              builder: (context, address, _) => Material(
+                color: AppColors.card,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(color: AppColors.border),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _detailRow(
+                  icon: Icons.location_on_outlined,
+                  label: 'Delivery address',
+                  value: address.trim().isEmpty
+                      ? 'Add delivery address'
+                      : address,
+                  onTap: () => _editField(
+                    label: 'Delivery address',
+                    value: address,
+                    onSaved: (value) => DeliveryAddress.current.value = value,
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 25),
-
-              const Text(
-                "Personal Information",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _logOut,
+                icon: const Icon(Icons.logout),
+                label: const Text('Log out'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.error),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
-              const SizedBox(height: 10),
-
-              _infoCard(
-                title: "Name",
-                value: name,
-                onEdit: () {
-                  _openEditBottomSheet(
-                    title: "Edit Name",
-                    currentValue: name,
-                    onSave: (v) => setState(() => name = v),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _infoCard(
-                title: "Email",
-                value: email,
-                onEdit: () {
-                  _openEditBottomSheet(
-                    title: "Edit Email",
-                    currentValue: email,
-                    onSave: (v) => setState(() => email = v),
-                  );
-                },
-                badge: _buildBadge("Verify", AppColors.accent),
-              ),
-
-              const SizedBox(height: 12),
-
-              _infoCard(
-                title: "Contact Number",
-                value: contact,
-                onEdit: () {
-                  _openEditBottomSheet(
-                    title: "Edit Contact Number",
-                    currentValue: contact,
-                    onSave: (v) => setState(() => contact = v),
-                  );
-                },
-                badge: _buildBadge("Verified", AppColors.success),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Product Management - only show for Admin users
-              if (widget.loggedInUser != null &&
-                  widget.loggedInUser!.role == "Admin") ...[
-                const Text(
-                  "Product Management",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 15),
-
-                _actionButton(
-                  "Add Product",
-                  Icons.add,
-                  AppColors.accent,
-                  _openAddProductPopup,
-                ),
-                const SizedBox(height: 10),
-
-                _actionButton(
-                  "Edit Product",
-                  Icons.edit,
-                  AppColors.primary,
-                  _openEditProductPopup,
-                ),
-                const SizedBox(height: 10),
-
-                _actionButton(
-                  "Remove Product",
-                  Icons.delete,
-                  AppColors.error,
-                  _openRemoveProductPopup,
-                ),
-
-                const SizedBox(height: 40),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _infoCard({
-    required String title,
-    required String value,
-    required VoidCallback onEdit,
-    Widget? badge,
-  }) {
+  Widget _profileHero() {
+    final avatar = widget.loggedInUser?.avatar;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(15),
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryPressed],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textOnPrimary,
+          Container(
+            width: 68,
+            height: 68,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: AppColors.textOnPrimary.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: avatar != null && avatar.isNotEmpty
+                  ? Image.asset(
+                      avatar,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _avatarPlaceholder(),
+                    )
+                  : _avatarPlaceholder(),
             ),
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    color: AppColors.textOnPrimary,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MY PROFILE',
+                  style: TextStyle(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.85),
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: 1.2,
                   ),
                 ),
-              ),
-              GestureDetector(
-                onTap: onEdit,
-                child: const Icon(Icons.edit, color: AppColors.textOnPrimary),
-              ),
-            ],
+                const SizedBox(height: 3),
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
-          if (badge != null) ...[const SizedBox(height: 8), badge],
         ],
       ),
     );
   }
 
-  Widget _buildBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color == AppColors.accent
-              ? AppColors.textPrimary
-              : AppColors.textOnPrimary,
-          fontSize: 12,
+  Widget _avatarPlaceholder() {
+    return const ColoredBox(
+      color: AppColors.surface,
+      child: Icon(Icons.person, color: AppColors.primary, size: 32),
+    );
+  }
+
+  Widget _sectionHeading(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _detailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 21),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.edit_outlined, color: AppColors.primary, size: 19),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _actionButton(
-    String text,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: onTap,
-        icon: Icon(
-          icon,
-          color: color == AppColors.accent
-              ? AppColors.textPrimary
-              : AppColors.textOnPrimary,
-        ),
-        label: Text(
-          text,
-          style: TextStyle(
-            color: color == AppColors.accent
-                ? AppColors.textPrimary
-                : AppColors.textOnPrimary,
-            fontWeight: FontWeight.bold,
+class _EditFieldSheet extends StatefulWidget {
+  final String label;
+  final String initialValue;
+  final TextInputType keyboardType;
+
+  const _EditFieldSheet({
+    required this.label,
+    required this.initialValue,
+    required this.keyboardType,
+  });
+
+  @override
+  State<_EditFieldSheet> createState() => _EditFieldSheetState();
+}
+
+class _EditFieldSheetState extends State<_EditFieldSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (_formKey.currentState?.validate() ?? false) {
+      Navigator.of(context).pop(_controller.text.trim());
+    }
+  }
+
+  String? _validate(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return '${widget.label} cannot be empty';
+    if (widget.keyboardType == TextInputType.emailAddress &&
+        !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text)) {
+      return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        18,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Edit ${widget.label.toLowerCase()}',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextFormField(
+                controller: _controller,
+                autofocus: true,
+                keyboardType: widget.keyboardType,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _save(),
+                validator: _validate,
+                decoration: InputDecoration(
+                  labelText: widget.label,
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _save,
+                  child: const Text('Save changes'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

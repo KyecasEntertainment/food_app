@@ -12,12 +12,14 @@ class SearchPage extends StatefulWidget {
   final bool autoFocus;
   final CartManager cartManager;
   final bool showBackButton;
+  final VoidCallback onCartPressed;
   const SearchPage({
     super.key,
     this.loggedInUser,
     this.autoFocus = false,
     required this.cartManager,
     this.showBackButton = false,
+    required this.onCartPressed,
   });
 
   @override
@@ -61,8 +63,8 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       appBar: CustomAppBar(
         showAddress: true,
-        loggedInUser: widget.loggedInUser,
         showBackButton: widget.showBackButton,
+        onCartPressed: widget.onCartPressed,
       ),
       body: Column(
         children: [
@@ -77,8 +79,13 @@ class _SearchPageState extends State<SearchPage> {
                 final product = filteredProducts[index];
                 return Card(
                   color: AppColors.card,
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
                   ),
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,

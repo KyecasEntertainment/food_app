@@ -28,10 +28,7 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        showAddress: true,
-        loggedInUser: widget.loggedInUser,
-      ),
+      appBar: CustomAppBar(title: 'Cart', showBackButton: true),
       body: widget.cartManager.items.isEmpty
           ? Center(
               child: Column(
@@ -62,6 +59,14 @@ class _CartPageState extends State<CartPage> {
                     itemBuilder: (context, index) {
                       final item = widget.cartManager.items[index];
                       return Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
                         margin: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,

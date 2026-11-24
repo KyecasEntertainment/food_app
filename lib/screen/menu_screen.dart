@@ -12,7 +12,13 @@ import 'package:food_app/product_search_field.dart';
 class HomePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
   final CartManager cartManager;
-  const HomePage({super.key, this.loggedInUser, required this.cartManager});
+  final VoidCallback onCartPressed;
+  const HomePage({
+    super.key,
+    this.loggedInUser,
+    required this.cartManager,
+    required this.onCartPressed,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -27,7 +33,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         showAddress: true,
-        loggedInUser: widget.loggedInUser,
+        onCartPressed: widget.onCartPressed,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -61,6 +67,7 @@ class _HomePageState extends State<HomePage> {
               loggedInUser: widget.loggedInUser,
               autoFocus: true,
               cartManager: widget.cartManager,
+              onCartPressed: widget.onCartPressed,
               showBackButton: true,
             ),
           ),
@@ -266,18 +273,23 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
-              : GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    return _buildFoodContainer(filteredProducts[index]);
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final tileWidth = (constraints.maxWidth - 15) / 2;
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        mainAxisExtent: tileWidth + 90,
+                      ),
+                      itemCount: filteredProducts.length,
+                      itemBuilder: (context, index) {
+                        return _buildFoodContainer(filteredProducts[index]);
+                      },
+                    );
                   },
                 ),
         ],
@@ -290,31 +302,38 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary, width: 1.5),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Product Image
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              AspectRatio(
+                aspectRatio: 1,
                 child: Image.asset(
                   product.product_image,
-                  height: 120,
-                  width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 120,
-                      color: AppColors.surface,
-                      child: Icon(
-                        Icons.food_bank,
-                        size: 50,
-                        color: AppColors.textPrimary,
-                      ),
-                    );
-                  },
+                  errorBuilder: (context, error, stackTrace) => const ColoredBox(
+                    color: AppColors.surface,
+                    child: Icon(
+                      Icons.food_bank,
+                      size: 50,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
               ),
               // Product Details

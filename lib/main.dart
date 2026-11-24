@@ -120,11 +120,29 @@ class _MainScreenState extends State<MainScreen> {
 
   void _buildPages() {
     _pages = [
-      HomePage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
-      SearchPage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
-      CartPage(loggedInUser: widget.loggedInUser, cartManager: _cartManager),
-      ProfilePage(loggedInUser: widget.loggedInUser),
+      HomePage(
+        loggedInUser: widget.loggedInUser,
+        cartManager: _cartManager,
+        onCartPressed: _openCart,
+      ),
+      SearchPage(
+        loggedInUser: widget.loggedInUser,
+        cartManager: _cartManager,
+        onCartPressed: _openCart,
+      ),
+      ProfilePage(loggedInUser: widget.loggedInUser, onCartPressed: _openCart),
     ];
+  }
+
+  void _openCart() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => CartPage(
+          loggedInUser: widget.loggedInUser,
+          cartManager: _cartManager,
+        ),
+      ),
+    );
   }
 
   void _onItemTapped(int index) {

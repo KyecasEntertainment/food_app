@@ -63,7 +63,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Checkout',
-        loggedInUser: widget.loggedInUser,
+        onCartPressed: () => Navigator.of(context).pop(),
       ),
       body: SingleChildScrollView(
         child: Padding(
