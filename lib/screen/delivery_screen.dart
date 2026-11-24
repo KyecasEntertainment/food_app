@@ -85,10 +85,12 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     // Generate random delay between 5-10 seconds
     int randomSeconds = Random().nextInt(6) + 5; // 5-10 seconds
 
-    Future.delayed(Duration(seconds: randomSeconds), () {
+    Future.delayed(Duration(seconds: randomSeconds), () async {
       if (mounted) {
         // Clear cart data
         widget.cartManager.clearCart();
+        await widget.cartManager.saved;
+        if (!mounted) return;
 
         // Replace entire navigation stack with a fresh MainScreen
         // (ensures the app lands on the Menu/Home tab)

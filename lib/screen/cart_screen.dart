@@ -79,7 +79,7 @@ class _CartPageState extends State<CartPage> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.asset(
-                                  item.product_image,
+                                  item.photo,
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,
@@ -103,7 +103,7 @@ class _CartPageState extends State<CartPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item.product_name,
+                                      item.name,
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                     SizedBox(height: 4),
                                     Text(
-                                      '₱${item.product_price.toStringAsFixed(2)}',
+                                      '₱${item.unitPrice.toStringAsFixed(2)}',
                                       style: GoogleFonts.poppins(
                                         fontSize: 14,
                                         color: AppColors.textSecondary,
@@ -138,7 +138,7 @@ class _CartPageState extends State<CartPage> {
                                     onTap: () {
                                       setState(() {
                                         widget.cartManager.updateQuantity(
-                                          item.product_id,
+                                          item.itemId,
                                           item.quantity + 1,
                                         );
                                       });
@@ -170,7 +170,7 @@ class _CartPageState extends State<CartPage> {
                                     onTap: () {
                                       setState(() {
                                         widget.cartManager.updateQuantity(
-                                          item.product_id,
+                                          item.itemId,
                                           item.quantity - 1,
                                         );
                                       });

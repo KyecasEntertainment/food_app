@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/product_list.dart';
+import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/cart_item.dart';
 import 'package:food_app/app_colors.dart';
@@ -28,11 +29,15 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   String searchText = '';
+  List<FoodItem> _products = [];
   late FocusNode _searchFocusNode;
 
   @override
   void initState() {
     super.initState();
+    activeRepository.getFoodItems().then((items) {
+      if (mounted) setState(() => _products = items);
+    });
     _searchFocusNode = FocusNode();
     if (widget.autoFocus) {
       // Delay focus request to after build
@@ -50,13 +55,11 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<StoreProducts> filteredProducts = searchText.isEmpty
-        ? products
-        : products
+    List<FoodItem> filteredProducts = searchText.isEmpty
+        ? _products
+        : _products
               .where(
-                (p) => p.product_name.toLowerCase().contains(
-                  searchText.toLowerCase(),
-                ),
+                (p) => p.name.toLowerCase().contains(searchText.toLowerCase()),
               )
               .toList();
 
@@ -96,7 +99,7 @@ class _SearchPageState extends State<SearchPage> {
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.asset(
-                        product.product_image,
+                        product.photo,
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
@@ -112,28 +115,26 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ),
                     title: Text(
-                      product.product_name,
+                      product.name,
                       style: const TextStyle(color: AppColors.textPrimary),
                     ),
                     subtitle: Text(
-                      product.product_category,
+                      product.category,
                       style: const TextStyle(color: AppColors.textPrimary),
                     ),
                     trailing: GestureDetector(
                       onTap: () {
                         final cartItem = CartItem(
-                          product_id: product.product_id,
-                          product_name: product.product_name,
-                          product_image: product.product_image,
-                          product_price: product.product_price,
+                          itemId: product.id,
+                          name: product.name,
+                          photo: product.photo,
+                          unitPrice: product.price,
                           quantity: 1,
                         );
                         widget.cartManager.addItem(cartItem);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              '${product.product_name} added to cart!',
-                            ),
+                            content: Text('${product.name} added to cart!'),
                             duration: Duration(seconds: 1),
                           ),
                         );

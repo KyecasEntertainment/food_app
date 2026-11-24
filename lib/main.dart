@@ -83,7 +83,6 @@ class Main extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const LoginScreen(),
-      routes: {'/main': (context) => const MainScreen()},
     );
   }
 }
@@ -108,13 +107,16 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final CartManager _cartManager = CartManager();
+  late final CartManager _cartManager = CartManager(
+    accountId: widget.loggedInUser?.id,
+  );
 
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _cartManager.load();
     _buildPages();
   }
 

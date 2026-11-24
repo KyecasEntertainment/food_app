@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/address_input.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/database/address.dart';
+import 'package:food_app/database/local_database.dart';
+import 'package:food_app/database/order.dart';
 import 'package:food_app/database/payment_modes.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
@@ -30,48 +34,83 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
+  final _addressFormKey = GlobalKey<FormState>();
+  late Address _address;
+  bool _savingOrder = false;
+  bool _orderPlaced = false;
   late String selectedPayment;
   bool contactlessDelivery = false;
   double tipAmount = 0;
 
-  late final TextEditingController addressNameController;
-  late final TextEditingController addressDetailController;
   late final TextEditingController instructionsController;
 
   @override
   void initState() {
     super.initState();
-    selectedPayment = payments.isNotEmpty
-        ? payments.first.payment_name
-        : 'GCash';
-    addressNameController = TextEditingController(text: 'Home');
-    addressDetailController = TextEditingController(
-      text: DeliveryAddress.current.value,
-    );
+    selectedPayment = payments.isNotEmpty ? payments.first.name : 'GCash';
+    _address = DeliveryAddress.structured.value;
     instructionsController = TextEditingController();
   }
 
   @override
   void dispose() {
-    addressNameController.dispose();
-    addressDetailController.dispose();
     instructionsController.dispose();
     super.dispose();
   }
 
-  void _placeOrder() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => OrderTrackingPage(
-          subtotal: widget.subtotal,
-          deliveryFee: widget.deliveryFee,
-          totalAmount: widget.totalAmount + tipAmount,
-          totalItems: widget.totalItems,
-          cartManager: widget.cartManager,
-          loggedInUser: widget.loggedInUser,
+  Future<void> _placeOrder() async {
+    final accountId = widget.loggedInUser?.id;
+    if (accountId == null) return;
+    if (_savingOrder ||
+        _orderPlaced ||
+        !(_addressFormKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    if (widget.cartManager.items.isEmpty) return;
+    setState(() => _savingOrder = true);
+    try {
+      final order = FoodOrder.fromCart(
+        cartItems: widget.cartManager.items,
+        deliveryAddress: _address,
+        shippingPrice: widget.deliveryFee,
+        tipPrice: tipAmount,
+        accountId: accountId,
+      );
+      if (widget.loggedInUser != null) {
+        final account = await activeRepository.getAccount(
+          widget.loggedInUser!.id,
+        );
+        await activeRepository.saveAccount(
+          (account ?? widget.loggedInUser!).copyWith(address: _address),
+        );
+      }
+      await activeRepository.saveOrder(order);
+      _orderPlaced = true;
+      DeliveryAddress.setAddress(_address);
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (context) => OrderTrackingPage(
+            subtotal: widget.subtotal,
+            deliveryFee: widget.deliveryFee,
+            totalAmount: order.totalPrice,
+            totalItems: widget.totalItems,
+            cartManager: widget.cartManager,
+            loggedInUser: widget.loggedInUser,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save the order. Please try again.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingOrder = false);
+    }
   }
 
   @override
@@ -240,24 +279,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return _sectionCard(
       icon: Icons.location_on_outlined,
       title: 'Delivery address',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _fieldLabel('Address label'),
-          TextField(
-            controller: addressNameController,
-            decoration: _fieldDecoration('Home, Office, or another label'),
-          ),
-          const SizedBox(height: 14),
-          _fieldLabel('Full address'),
-          TextField(
-            controller: addressDetailController,
-            keyboardType: TextInputType.streetAddress,
-            maxLines: 2,
-            onChanged: (value) => DeliveryAddress.current.value = value,
-            decoration: _fieldDecoration('Enter your complete address'),
-          ),
-        ],
+      child: Form(
+        key: _addressFormKey,
+        child: AddressInput(
+          initialAddress: _address,
+          onChanged: (address) => _address = address,
+        ),
       ),
     );
   }
@@ -312,7 +339,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _paymentOption(PaymentModes method) {
-    final isSelected = selectedPayment == method.payment_name;
+    final isSelected = selectedPayment == method.name;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(14),
       side: BorderSide(
@@ -326,7 +353,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       shape: shape,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => setState(() => selectedPayment = method.payment_name),
+        onTap: () => setState(() => selectedPayment = method.name),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -335,7 +362,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 width: 38,
                 height: 38,
                 child: Image.asset(
-                  method.payment_logo,
+                  method.logo,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => const Icon(
                     Icons.credit_card,
@@ -346,7 +373,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  method.payment_name,
+                  method.name,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -510,7 +537,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _placeOrder,
+                      onPressed: _savingOrder || _orderPlaced
+                          ? null
+                          : _placeOrder,
                       icon: const Icon(Icons.arrow_forward_rounded),
                       label: const Text(
                         'Place order',

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/address_input.dart';
 import 'package:food_app/custom_top_bar.dart';
+import 'package:food_app/database/address.dart';
+import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/database/cart_manager.dart';
@@ -22,16 +25,59 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late String name;
+  late String firstName;
+  late String lastName;
   late String email;
   late String contact;
 
   @override
   void initState() {
     super.initState();
-    name = widget.loggedInUser?.name ?? 'John Doe';
+    firstName = widget.loggedInUser?.firstName ?? 'John';
+    lastName = widget.loggedInUser?.lastName ?? 'Doe';
     email = widget.loggedInUser?.email ?? 'johndoe@example.com';
     contact = '+639934229236';
+  }
+
+  String get name => '$firstName $lastName'.trim();
+
+  Future<void> _saveProfile({
+    String? first,
+    String? last,
+    String? newEmail,
+    Address? address,
+  }) async {
+    final account = widget.loggedInUser;
+    if (account == null) return;
+    try {
+      await activeRepository.saveAccount(
+        account.copyWith(
+          firstName: first ?? firstName,
+          lastName: last ?? lastName,
+          email: newEmail ?? email,
+          address: address ?? DeliveryAddress.structured.value,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save profile changes.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editAddress() async {
+    final address = await showModalBottomSheet<Address>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) =>
+          _AddressSheet(initialAddress: DeliveryAddress.structured.value),
+    );
+    if (address == null || !mounted) return;
+    await _saveProfile(address: address);
+    DeliveryAddress.setAddress(address);
   }
 
   Future<void> _editField({
@@ -59,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _logOut() {
-    DeliveryAddress.current.value = DeliveryAddress.defaultAddress;
+    DeliveryAddress.setAddress(Address.empty);
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
@@ -91,12 +137,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _detailRow(
                     icon: Icons.person_outline,
-                    label: 'Full name',
-                    value: name,
+                    label: 'First name',
+                    value: firstName,
                     onTap: () => _editField(
-                      label: 'Full name',
-                      value: name,
-                      onSaved: (value) => setState(() => name = value),
+                      label: 'First name',
+                      value: firstName,
+                      onSaved: (value) {
+                        setState(() => firstName = value);
+                        _saveProfile(first: value);
+                      },
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 68, endIndent: 16),
+                  _detailRow(
+                    icon: Icons.person_outline,
+                    label: 'Last name',
+                    value: lastName,
+                    onTap: () => _editField(
+                      label: 'Last name',
+                      value: lastName,
+                      onSaved: (value) {
+                        setState(() => lastName = value);
+                        _saveProfile(last: value);
+                      },
                     ),
                   ),
                   const Divider(height: 1, indent: 68, endIndent: 16),
@@ -108,7 +171,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'Email address',
                       value: email,
                       keyboardType: TextInputType.emailAddress,
-                      onSaved: (value) => setState(() => email = value),
+                      onSaved: (value) {
+                        setState(() => email = value);
+                        _saveProfile(newEmail: value);
+                      },
                     ),
                   ),
                   const Divider(height: 1, indent: 68, endIndent: 16),
@@ -144,11 +210,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   value: address.trim().isEmpty
                       ? 'Add delivery address'
                       : address,
-                  onTap: () => _editField(
-                    label: 'Delivery address',
-                    value: address,
-                    onSaved: (value) => DeliveryAddress.current.value = value,
-                  ),
+                  onTap: _editAddress,
                 ),
               ),
             ),
@@ -350,6 +412,59 @@ class _EditFieldSheet extends StatefulWidget {
 
   @override
   State<_EditFieldSheet> createState() => _EditFieldSheetState();
+}
+
+class _AddressSheet extends StatefulWidget {
+  const _AddressSheet({required this.initialAddress});
+  final Address initialAddress;
+
+  @override
+  State<_AddressSheet> createState() => _AddressSheetState();
+}
+
+class _AddressSheetState extends State<_AddressSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late Address _address = widget.initialAddress;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.fromLTRB(
+      20,
+      20,
+      20,
+      MediaQuery.viewInsetsOf(context).bottom + 20,
+    ),
+    child: SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Delivery address',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            AddressInput(
+              initialAddress: widget.initialAddress,
+              onChanged: (address) => _address = address,
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    Navigator.of(context).pop(_address);
+                  }
+                },
+                child: const Text('Save address'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _EditFieldSheetState extends State<_EditFieldSheet> {

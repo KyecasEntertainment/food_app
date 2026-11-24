@@ -10,33 +10,21 @@ void main() {
     cart.addListener(() => badgeCounts.add(cart.distinctProductCount));
 
     cart.addItem(
-      CartItem(
-        product_id: 1,
-        product_name: 'Cheese Burger',
-        product_image: '',
-        product_price: 100,
-      ),
+      CartItem(itemId: 1, name: 'Cheese Burger', photo: '', unitPrice: 100),
     );
     cart.addItem(
       CartItem(
-        product_id: 2,
-        product_name: 'Pizza',
-        product_image: '',
-        product_price: 200,
+        itemId: 2,
+        name: 'Pizza',
+        photo: '',
+        unitPrice: 200,
         quantity: 2,
       ),
     );
     expect(cart.distinctProductCount, 2);
     expect(cart.itemCount, 3);
 
-    cart.addItem(
-      CartItem(
-        product_id: 2,
-        product_name: 'Pizza',
-        product_image: '',
-        product_price: 200,
-      ),
-    );
+    cart.addItem(CartItem(itemId: 2, name: 'Pizza', photo: '', unitPrice: 200));
     expect(cart.distinctProductCount, 2);
     expect(cart.itemCount, 4);
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/product_list.dart';
+import 'package:food_app/database/local_database.dart';
 import 'package:food_app/screen/search_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
@@ -26,6 +27,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String selectedCategory = "All";
+  List<FoodItem> _products = [];
+
+  @override
+  void initState() {
+    super.initState();
+    activeRepository.getFoodItems().then((items) {
+      if (mounted) setState(() => _products = items);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +206,7 @@ class _HomePageState extends State<HomePage> {
               height: 100,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                return Container(
+                return SizedBox(
                   width: 150,
                   child: Icon(
                     Icons.fastfood,
@@ -241,11 +251,9 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildPopularSection() {
     // Filter products based on selected category
-    List<StoreProducts> filteredProducts = selectedCategory == "All"
-        ? products
-        : products
-              .where((p) => p.product_category == selectedCategory)
-              .toList();
+    List<FoodItem> filteredProducts = selectedCategory == "All"
+        ? _products
+        : _products.where((p) => p.category == selectedCategory).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -298,7 +306,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildFoodContainer(StoreProducts product) {
+  Widget _buildFoodContainer(FoodItem product) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
@@ -325,7 +333,7 @@ class _HomePageState extends State<HomePage> {
               AspectRatio(
                 aspectRatio: 1,
                 child: Image.asset(
-                  product.product_image,
+                  product.photo,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const ColoredBox(
@@ -348,7 +356,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Flexible(
                         child: Text(
-                          product.product_name,
+                          product.name,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -359,7 +367,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        '₱${product.product_price.toStringAsFixed(2)}',
+                        '₱${product.price.toStringAsFixed(2)}',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -380,16 +388,16 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 // Add to cart functionality
                 final cartItem = CartItem(
-                  product_id: product.product_id,
-                  product_name: product.product_name,
-                  product_image: product.product_image,
-                  product_price: product.product_price,
+                  itemId: product.id,
+                  name: product.name,
+                  photo: product.photo,
+                  unitPrice: product.price,
                   quantity: 1,
                 );
                 widget.cartManager.addItem(cartItem);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('${product.product_name} added to cart!'),
+                    content: Text('${product.name} added to cart!'),
                     duration: Duration(seconds: 1),
                   ),
                 );

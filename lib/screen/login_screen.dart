@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/database/demo_auth.dart';
+import 'package:food_app/delivery_address.dart';
 import 'package:food_app/main.dart';
 import 'package:food_app/app_colors.dart';
 
@@ -101,23 +102,17 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      final matchedUser = accounts.firstWhere(
-        (acc) => acc.email == email && acc.password == password,
-        orElse: () => UserAccounts(
-          email: '',
-          password: '',
-          name: '',
-          avatar: '',
-          role: '',
-        ),
-      );
+      final matchedUser = await DemoAuth.signIn(email, password);
 
-      if (matchedUser.email.isNotEmpty) {
+      if (!mounted) return;
+
+      if (matchedUser != null) {
+        DeliveryAddress.setAddress(matchedUser.address);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
