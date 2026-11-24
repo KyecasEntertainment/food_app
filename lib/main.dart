@@ -21,7 +21,7 @@ class Main extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Bottom Navigation App',
+      title: 'Kyecas: Food Delivery App',
       theme: ThemeData(
         fontFamily: GoogleFonts.poppins().fontFamily,
         colorScheme: const ColorScheme.light(

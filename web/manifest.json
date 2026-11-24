@@ -1,11 +1,11 @@
 {
-    "name": "food_app",
-    "short_name": "food_app",
+    "name": "Kyecas: Food Delivery App",
+    "short_name": "Kyecas",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFF8F0",
     "theme_color": "#C93F25",
-    "description": "A new Flutter project.",
+    "description": "Kyecas: Food Delivery App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
