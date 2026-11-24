@@ -130,7 +130,11 @@ class _MainScreenState extends State<MainScreen> {
         cartManager: _cartManager,
         onCartPressed: _openCart,
       ),
-      ProfilePage(loggedInUser: widget.loggedInUser, onCartPressed: _openCart),
+      ProfilePage(
+        loggedInUser: widget.loggedInUser,
+        onCartPressed: _openCart,
+        cartManager: _cartManager,
+      ),
     ];
   }
 
@@ -149,6 +153,12 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void dispose() {
+    _cartManager.dispose();
+    super.dispose();
   }
 
   @override

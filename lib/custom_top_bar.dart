@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/app_colors.dart';
 import 'package:food_app/delivery_address.dart';
+import 'package:food_app/database/cart_manager.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final bool showBackButton;
   final bool showAddress;
   final VoidCallback? onCartPressed;
+  final CartManager? cartManager;
 
   const CustomAppBar({
     super.key,
@@ -15,7 +17,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showBackButton = false,
     this.showAddress = false,
     this.onCartPressed,
-  }) : assert(showAddress || title != null);
+    this.cartManager,
+  }) : assert(showAddress || title != null),
+       assert(onCartPressed == null || cartManager != null);
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +63,25 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: onCartPressed == null
           ? null
           : [
-              IconButton(
-                tooltip: 'Cart',
-                onPressed: onCartPressed,
-                icon: const Icon(
-                  Icons.shopping_cart_outlined,
-                  color: AppColors.primary,
-                ),
+              AnimatedBuilder(
+                animation: cartManager!,
+                builder: (context, _) {
+                  final count = cartManager!.distinctProductCount;
+                  return IconButton(
+                    tooltip:
+                        'Cart ($count ${count == 1 ? 'product' : 'products'})',
+                    onPressed: onCartPressed,
+                    icon: Badge.count(
+                      count: count,
+                      backgroundColor: AppColors.primary,
+                      textColor: AppColors.textOnPrimary,
+                      child: const Icon(
+                        Icons.shopping_cart_outlined,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
     );

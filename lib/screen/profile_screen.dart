@@ -3,15 +3,18 @@ import 'package:food_app/app_colors.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
+import 'package:food_app/database/cart_manager.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
   final VoidCallback onCartPressed;
+  final CartManager cartManager;
 
   const ProfilePage({
     super.key,
     this.loggedInUser,
     required this.onCartPressed,
+    required this.cartManager,
   });
 
   @override
@@ -67,6 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: CustomAppBar(
         showAddress: true,
         onCartPressed: widget.onCartPressed,
+        cartManager: widget.cartManager,
       ),
       body: SafeArea(
         child: ListView(

@@ -34,6 +34,7 @@ class _HomePageState extends State<HomePage> {
       appBar: CustomAppBar(
         showAddress: true,
         onCartPressed: widget.onCartPressed,
+        cartManager: widget.cartManager,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -326,14 +327,15 @@ class _HomePageState extends State<HomePage> {
                 child: Image.asset(
                   product.product_image,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const ColoredBox(
-                    color: AppColors.surface,
-                    child: Icon(
-                      Icons.food_bank,
-                      size: 50,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const ColoredBox(
+                        color: AppColors.surface,
+                        child: Icon(
+                          Icons.food_bank,
+                          size: 50,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                 ),
               ),
               // Product Details

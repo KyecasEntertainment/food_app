@@ -1,13 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:food_app/database/cart_item.dart';
 
-class CartManager {
-  List<CartItem> _items = [];
+class CartManager extends ChangeNotifier {
+  final List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
 
+  int get distinctProductCount =>
+      _items.map((item) => item.product_id).toSet().length;
+
   void addItem(CartItem item) {
-    final existingIndex = _items.indexWhere((i) => i.product_id == item.product_id);
-    
+    final existingIndex = _items.indexWhere(
+      (i) => i.product_id == item.product_id,
+    );
+
     if (existingIndex >= 0) {
       // Item already in cart, increase quantity
       _items[existingIndex].quantity += item.quantity;
@@ -15,10 +21,12 @@ class CartManager {
       // New item, add to cart
       _items.add(item);
     }
+    notifyListeners();
   }
 
   void removeItem(int product_id) {
     _items.removeWhere((item) => item.product_id == product_id);
+    notifyListeners();
   }
 
   void updateQuantity(int product_id, int quantity) {
@@ -29,6 +37,7 @@ class CartManager {
       } else {
         _items[itemIndex].quantity = quantity;
       }
+      notifyListeners();
     }
   }
 
@@ -42,5 +51,6 @@ class CartManager {
 
   void clearCart() {
     _items.clear();
+    notifyListeners();
   }
 }

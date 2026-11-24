@@ -65,6 +65,7 @@ class _SearchPageState extends State<SearchPage> {
         showAddress: true,
         showBackButton: widget.showBackButton,
         onCartPressed: widget.onCartPressed,
+        cartManager: widget.cartManager,
       ),
       body: Column(
         children: [
