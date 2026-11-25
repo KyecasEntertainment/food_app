@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/database/food_photo.dart';
 import 'package:food_app/screen/checkout_screen.dart';
 import 'package:food_app/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math';
 
 class CartPage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -22,14 +22,40 @@ class _CartPageState extends State<CartPage> {
   @override
   void initState() {
     super.initState();
-    deliveryFee = Random().nextInt(71).toDouble() + 30; // Random between 30-100
+    widget.cartManager.addListener(_onCartChanged);
+    deliveryFee = 50.0;
+  }
+
+  void _onCartChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.cartManager.removeListener(_onCartChanged);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: 'Cart', showBackButton: true),
-      body: widget.cartManager.items.isEmpty
+      body: widget.cartManager.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : widget.cartManager.loadError != null
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(widget.cartManager.loadError!),
+                  TextButton(
+                    onPressed: widget.cartManager.load,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : widget.cartManager.items.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -53,6 +79,16 @@ class _CartPageState extends State<CartPage> {
             )
           : Column(
               children: [
+                if (widget.cartManager.saveError != null)
+                  MaterialBanner(
+                    content: Text(widget.cartManager.saveError!),
+                    actions: [
+                      TextButton(
+                        onPressed: widget.cartManager.retrySave,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: widget.cartManager.items.length,
@@ -78,8 +114,8 @@ class _CartPageState extends State<CartPage> {
                               // Product Image
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  item.photo,
+                                child: Image(
+                                  image: foodPhotoProvider(item.photo),
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,

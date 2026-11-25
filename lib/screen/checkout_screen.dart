@@ -6,6 +6,7 @@ import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/address.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/order.dart';
+import 'package:food_app/database/supabase_settings.dart';
 import 'package:food_app/database/payment_modes.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
@@ -38,6 +39,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   late Address _address;
   bool _savingOrder = false;
   bool _orderPlaced = false;
+  FoodOrder? _pendingOrder;
   late String selectedPayment;
   bool contactlessDelivery = false;
   double tipAmount = 0;
@@ -66,16 +68,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
         !(_addressFormKey.currentState?.validate() ?? false)) {
       return;
     }
-    if (widget.cartManager.items.isEmpty) return;
+    if (_pendingOrder == null && widget.cartManager.items.isEmpty) return;
     setState(() => _savingOrder = true);
     try {
-      final order = FoodOrder.fromCart(
+      final draft = _pendingOrder ?? FoodOrder.fromCart(
         cartItems: widget.cartManager.items,
         deliveryAddress: _address,
         shippingPrice: widget.deliveryFee,
         tipPrice: tipAmount,
         accountId: accountId,
       );
+      _pendingOrder = draft;
       if (widget.loggedInUser != null) {
         final account = await activeRepository.getAccount(
           widget.loggedInUser!.id,
@@ -84,17 +87,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
           (account ?? widget.loggedInUser!).copyWith(address: _address),
         );
       }
-      await activeRepository.saveOrder(order);
+      final order = await activeRepository.saveOrder(draft);
+      widget.cartManager.clearCart();
+      await widget.cartManager.saved;
       _orderPlaced = true;
       DeliveryAddress.setAddress(_address);
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (context) => OrderTrackingPage(
-            subtotal: widget.subtotal,
-            deliveryFee: widget.deliveryFee,
+            subtotal: order.items.fold<double>(
+              0,
+              (sum, line) => sum + line.subtotal,
+            ),
+            deliveryFee: order.shippingPrice,
             totalAmount: order.totalPrice,
-            totalItems: widget.totalItems,
+            totalItems: order.items.fold<int>(
+              0,
+              (sum, line) => sum + line.quantity,
+            ),
             cartManager: widget.cartManager,
             loggedInUser: widget.loggedInUser,
           ),
@@ -283,6 +294,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
         key: _addressFormKey,
         child: AddressInput(
           initialAddress: _address,
+          requireSubdivision: SupabaseSettings.isConfigured,
+          requirePin: SupabaseSettings.isConfigured,
+          showMapPicker: true,
           onChanged: (address) => _address = address,
         ),
       ),

@@ -11,13 +11,29 @@ class CartManager extends ChangeNotifier {
   final List<CartItem> _items = [];
   Future<void> _pendingSave = Future.value();
   bool _edited = false;
+  bool _disposed = false;
+  bool isLoading = false;
+  String? loadError;
+  String? saveError;
 
   Future<void> load() async {
     if (accountId == null) return;
-    final saved = await _repository.getCart(accountId!);
-    if (_edited) return;
-    _items.addAll(saved);
-    notifyListeners();
+    isLoading = true;
+    loadError = null;
+    _notify();
+    try {
+      final saved = await _repository.getCart(accountId!);
+      if (!_edited) {
+        _items
+          ..clear()
+          ..addAll(saved);
+      }
+    } catch (_) {
+      loadError = 'Could not load your cart.';
+    } finally {
+      isLoading = false;
+      _notify();
+    }
   }
 
   void _save() {
@@ -26,9 +42,15 @@ class CartManager extends ChangeNotifier {
     final snapshot = _items
         .map((item) => CartItem.fromJson(item.toJson()))
         .toList();
-    _pendingSave = _pendingSave.then(
-      (_) => _repository.saveCart(accountId!, snapshot),
-    );
+    _pendingSave = _pendingSave.then((_) async {
+      try {
+        await _repository.saveCart(accountId!, snapshot);
+        saveError = null;
+      } catch (_) {
+        saveError = 'Could not save your cart.';
+      }
+      _notify();
+    });
   }
 
   List<CartItem> get items => _items;
@@ -44,13 +66,13 @@ class CartManager extends ChangeNotifier {
       _items.add(item);
     }
     _save();
-    notifyListeners();
+    _notify();
   }
 
   void removeItem(int itemId) {
     _items.removeWhere((item) => item.itemId == itemId);
     _save();
-    notifyListeners();
+    _notify();
   }
 
   void updateQuantity(int itemId, int quantity) {
@@ -62,7 +84,7 @@ class CartManager extends ChangeNotifier {
         _items[itemIndex].quantity = quantity;
       }
       _save();
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -73,8 +95,23 @@ class CartManager extends ChangeNotifier {
   void clearCart() {
     _items.clear();
     _save();
-    notifyListeners();
+    _notify();
   }
 
-  Future<void> get saved => _pendingSave;
+  void retrySave() => _save();
+
+  Future<void> get saved async {
+    await _pendingSave;
+    if (saveError != null) throw StateError(saveError!);
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 }

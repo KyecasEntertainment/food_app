@@ -3,6 +3,7 @@ import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/product_list.dart';
 import 'package:food_app/database/local_database.dart';
+import 'package:food_app/database/food_photo.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/cart_item.dart';
 import 'package:food_app/app_colors.dart';
@@ -30,20 +31,40 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   String searchText = '';
   List<FoodItem> _products = [];
+  bool _loadingProducts = true;
+  bool _loadFailed = false;
   late FocusNode _searchFocusNode;
 
   @override
   void initState() {
     super.initState();
-    activeRepository.getFoodItems().then((items) {
-      if (mounted) setState(() => _products = items);
-    });
+    _loadProducts();
     _searchFocusNode = FocusNode();
     if (widget.autoFocus) {
       // Delay focus request to after build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _searchFocusNode.requestFocus();
       });
+    }
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final items = await activeRepository.getFoodItems();
+      if (mounted) {
+        setState(() {
+          _products = items;
+          _loadingProducts = false;
+          _loadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingProducts = false;
+          _loadFailed = true;
+        });
+      }
     }
   }
 
@@ -77,7 +98,28 @@ class _SearchPageState extends State<SearchPage> {
             onChanged: (value) => setState(() => searchText = value),
           ),
           Expanded(
-            child: ListView.builder(
+            child: _loadingProducts
+                ? const Center(child: CircularProgressIndicator())
+                : _loadFailed
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Could not load the menu.'),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _loadingProducts = true;
+                              _loadFailed = false;
+                            });
+                            _loadProducts();
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
               itemCount: filteredProducts.length,
               itemBuilder: (context, index) {
                 final product = filteredProducts[index];
@@ -98,8 +140,8 @@ class _SearchPageState extends State<SearchPage> {
                   child: ListTile(
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        product.photo,
+                      child: Image(
+                        image: foodPhotoProvider(product.photo),
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
@@ -123,7 +165,7 @@ class _SearchPageState extends State<SearchPage> {
                       style: const TextStyle(color: AppColors.textPrimary),
                     ),
                     trailing: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         final cartItem = CartItem(
                           itemId: product.id,
                           name: product.name,
@@ -132,12 +174,23 @@ class _SearchPageState extends State<SearchPage> {
                           quantity: 1,
                         );
                         widget.cartManager.addItem(cartItem);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${product.name} added to cart!'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
+                        try {
+                          await widget.cartManager.saved;
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${product.name} added to cart!'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not save your cart.'),
+                            ),
+                          );
+                        }
                       },
                       child: Container(
                         padding: EdgeInsets.all(8),

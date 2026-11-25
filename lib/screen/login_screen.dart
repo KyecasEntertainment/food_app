@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:food_app/database/demo_auth.dart';
+import 'package:food_app/database/local_database.dart';
+import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/main.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/screen/signin_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -107,34 +110,72 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      final matchedUser = await DemoAuth.signIn(email, password);
+      try {
+        final matchedUser = await _signInWithSupabase(email, password);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      if (matchedUser != null) {
-        DeliveryAddress.setAddress(matchedUser.address);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            // Replace the login route with MainScreen passing the logged-in user
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => MainScreen(loggedInUser: matchedUser),
-              ),
-            );
-          }
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid email or password'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        if (matchedUser != null) {
+          DeliveryAddress.setAddress(matchedUser.address);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              // Replace the login route with MainScreen passing the logged-in user
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => MainScreen(loggedInUser: matchedUser),
+                ),
+              );
+            }
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid email or password'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      } on AuthException catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not sign in. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     }
+  }
+
+  Future<UserAccounts?> _signInWithSupabase(
+    String email,
+    String password,
+  ) async {
+    final result = await Supabase.instance.client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+    final user = result.user;
+    if (user == null) return null;
+    final account = await activeRepository.getAccount(user.id);
+    if (account == null) {
+      await Supabase.instance.client.auth.signOut();
+      throw StateError('Account profile is missing');
+    }
+    return account;
   }
 
   @override
@@ -221,6 +262,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           'Login',
                           style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SigninScreen(),
+                          ),
+                        ),
+                        child: const Text(
+                          'Create an account',
+                          style: TextStyle(color: AppColors.textOnPrimary),
                         ),
                       ),
                       const SizedBox(height: 60),

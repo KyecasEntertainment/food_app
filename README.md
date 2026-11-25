@@ -1,8 +1,9 @@
 # Food app
 
-A Flutter food ordering app. The current app runs with local demo sign-in,
-catalog fixtures, and `SharedPreferences` storage. Its records and repository
-interface are structured for a later Supabase integration.
+A Flutter food ordering app backed by the sibling local Supabase project. Run
+with `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` Dart defines. Without them,
+the app displays a configuration message. Supabase Auth, Postgres, and Storage
+provide accounts, catalog, carts, orders, food photos, and user avatars.
 
 ## Data model
 
@@ -15,21 +16,24 @@ interface are structured for a later Supabase integration.
 | Order | UUID, account ID, order lines, delivery address snapshot, shipping price, tip price, total price, creation time |
 | Order line | Food item ID, quantity, unit price snapshot |
 
-The app saves account changes, carts, and placed orders locally through
-`FoodRepository` in `lib/database/local_database.dart`. Food items come from the
-existing fixtures through the same interface. Cart records are saved per
-account; order records retain their address and item prices after checkout.
+`SupabaseFoodRepository` implements `FoodRepository` for the running app.
+`LocalDatabase` and its fixtures remain for isolated tests. The local backend
+stores one cart per account and keeps address and item price snapshots in each
+order. The database calculates the delivery fee and final order total.
 
-Demo passwords live only in `demo_auth.dart` and are not serialized with
-profiles or orders. They are development fixtures, not production auth.
+Demo passwords in `demo_auth.dart` are test fixtures and are not used by the
+running app. Account passwords go to Supabase Auth.
 
 ## Supabase preparation
 
-The Postgres schema, constraints, foreign keys, indexes, and row level security
-policies are in `supabase/migrations/20261124000000_initial_food_schema.sql`.
-See `supabase/README.md` for the remaining integration steps. The app does not
-connect to Supabase yet. The address form accepts pin coordinates; a Google
-Maps picker has not been connected.
+The local Supabase backend is in the sibling `food_app_supabase` directory. It
+contains the canonical Postgres migrations, row level security policies, catalog
+seed, Storage buckets, image upload script, and startup instructions. See
+`supabase/README.md` for connection steps.
+The account creation form requires first and last name, email, password, the
+four address parts, and a latitude/longitude pin. The Google Maps picker is
+available on Android and iOS after an API key is configured; coordinate entry
+remains available for development and web.
 
 ## Checks
 

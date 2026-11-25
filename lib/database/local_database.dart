@@ -14,7 +14,7 @@ abstract class FoodRepository {
   Future<List<FoodItem>> getFoodItems();
   Future<List<CartItem>> getCart(String accountId);
   Future<void> saveCart(String accountId, List<CartItem> items);
-  Future<void> saveOrder(FoodOrder order);
+  Future<FoodOrder> saveOrder(FoodOrder order);
   Future<List<FoodOrder>> getOrders(String accountId);
 }
 
@@ -75,13 +75,14 @@ class LocalDatabase implements FoodRepository {
   }
 
   @override
-  Future<void> saveOrder(FoodOrder order) async {
+  Future<FoodOrder> saveOrder(FoodOrder order) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_orderPrefix${order.accountId}';
     final saved = prefs.getString(key);
     final orders = saved == null ? <dynamic>[] : jsonDecode(saved) as List;
     orders.add(order.toJson());
     await prefs.setString(key, jsonEncode(orders));
+    return order;
   }
 
   @override

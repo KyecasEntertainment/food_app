@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/avatar_image.dart';
 import 'package:food_app/address_input.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/address.dart';
 import 'package:food_app/database/local_database.dart';
+import 'package:food_app/database/supabase_settings.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -25,6 +29,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  UserAccounts? _account;
+  bool _uploadingAvatar = false;
   late String firstName;
   late String lastName;
   late String email;
@@ -33,6 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    _account = widget.loggedInUser;
     firstName = widget.loggedInUser?.firstName ?? 'John';
     lastName = widget.loggedInUser?.lastName ?? 'Doe';
     email = widget.loggedInUser?.email ?? 'johndoe@example.com';
@@ -41,29 +48,96 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String get name => '$firstName $lastName'.trim();
 
-  Future<void> _saveProfile({
+  Future<bool> _saveProfile({
     String? first,
     String? last,
     String? newEmail,
     Address? address,
   }) async {
-    final account = widget.loggedInUser;
-    if (account == null) return;
+    final account = _account;
+    if (account == null) return false;
     try {
-      await activeRepository.saveAccount(
-        account.copyWith(
-          firstName: first ?? firstName,
-          lastName: last ?? lastName,
-          email: newEmail ?? email,
-          address: address ?? DeliveryAddress.structured.value,
-        ),
+      final updated = account.copyWith(
+        firstName: first ?? firstName,
+        lastName: last ?? lastName,
+        email: newEmail ?? email,
+        address: address ?? DeliveryAddress.structured.value,
       );
+      await activeRepository.saveAccount(updated);
+      if (mounted) setState(() => _account = updated);
+      return true;
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save profile changes.')),
         );
       }
+      return false;
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final account = _account;
+    if (account == null || _uploadingAvatar || !SupabaseSettings.isConfigured) {
+      return;
+    }
+    final selected = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 80,
+    );
+    if (selected == null || !mounted) return;
+    final extension = selected.name.split('.').last.toLowerCase();
+    final mimeType = switch (extension) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      _ => null,
+    };
+    if (mimeType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choose a JPG, PNG, or WebP image.')),
+      );
+      return;
+    }
+    setState(() => _uploadingAvatar = true);
+    final storage = Supabase.instance.client.storage.from('user-avatars');
+    String? uploadedPath;
+    try {
+      final bytes = await selected.readAsBytes();
+      if (bytes.length > 5 * 1024 * 1024) {
+        throw StateError('Avatar must be 5 MB or smaller');
+      }
+      uploadedPath = '${account.id}/${DateTime.now().microsecondsSinceEpoch}.$extension';
+      await storage.uploadBinary(
+        uploadedPath,
+        bytes,
+        fileOptions: FileOptions(contentType: mimeType),
+      );
+      final updated = account.copyWith(avatar: uploadedPath);
+      await activeRepository.saveAccount(updated);
+      if (mounted) setState(() => _account = updated);
+      final previous = account.avatar;
+      if (previous.startsWith('${account.id}/')) {
+        try {
+          await storage.remove([previous]);
+        } catch (_) {
+          // The new avatar is already saved; old-object cleanup can be retried.
+        }
+      }
+    } catch (_) {
+      if (uploadedPath != null) {
+        try {
+          await storage.remove([uploadedPath]);
+        } catch (_) {}
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not upload your photo.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
     }
   }
 
@@ -76,8 +150,9 @@ class _ProfilePageState extends State<ProfilePage> {
           _AddressSheet(initialAddress: DeliveryAddress.structured.value),
     );
     if (address == null || !mounted) return;
-    await _saveProfile(address: address);
-    DeliveryAddress.setAddress(address);
+    if (await _saveProfile(address: address)) {
+      DeliveryAddress.setAddress(address);
+    }
   }
 
   Future<void> _editField({
@@ -104,9 +179,24 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted && updated != null) onSaved(updated);
   }
 
-  void _logOut() {
-    DeliveryAddress.setAddress(Address.empty);
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  Future<void> _logOut() async {
+    try {
+      if (SupabaseSettings.isConfigured) {
+        await Supabase.instance.client.auth.signOut();
+      }
+      DeliveryAddress.setAddress(Address.empty);
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not sign out. Please try again.'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -239,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _profileHero() {
-    final avatar = widget.loggedInUser?.avatar;
+    final avatar = _account?.avatar;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -253,23 +343,36 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 68,
-            height: 68,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: AppColors.textOnPrimary.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: avatar != null && avatar.isNotEmpty
-                  ? Image.asset(
-                      avatar,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _avatarPlaceholder(),
-                    )
-                  : _avatarPlaceholder(),
+          GestureDetector(
+            onTap: SupabaseSettings.isConfigured ? _pickAvatar : null,
+            child: Stack(
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipOval(
+                    child: AvatarImage(
+                      path: avatar,
+                      placeholder: _avatarPlaceholder(),
+                    ),
+                  ),
+                ),
+                if (SupabaseSettings.isConfigured)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Icon(
+                      _uploadingAvatar ? Icons.hourglass_top : Icons.camera_alt,
+                      size: 19,
+                      color: AppColors.textOnPrimary,
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 16),
@@ -447,6 +550,9 @@ class _AddressSheetState extends State<_AddressSheet> {
             const SizedBox(height: 16),
             AddressInput(
               initialAddress: widget.initialAddress,
+              requireSubdivision: SupabaseSettings.isConfigured,
+              requirePin: SupabaseSettings.isConfigured,
+              showMapPicker: true,
               onChanged: (address) => _address = address,
             ),
             SizedBox(

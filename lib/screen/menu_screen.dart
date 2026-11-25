@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/product_list.dart';
 import 'package:food_app/database/local_database.dart';
+import 'package:food_app/database/food_photo.dart';
 import 'package:food_app/screen/search_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/database/cart_manager.dart';
@@ -28,13 +29,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String selectedCategory = "All";
   List<FoodItem> _products = [];
+  bool _loadingProducts = true;
+  bool _loadFailed = false;
 
   @override
   void initState() {
     super.initState();
-    activeRepository.getFoodItems().then((items) {
-      if (mounted) setState(() => _products = items);
-    });
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final items = await activeRepository.getFoodItems();
+      if (mounted) {
+        setState(() {
+          _products = items;
+          _loadingProducts = false;
+          _loadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingProducts = false;
+          _loadFailed = true;
+        });
+      }
+    }
   }
 
   @override
@@ -269,7 +290,27 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SizedBox(height: 15),
-          filteredProducts.isEmpty
+          _loadingProducts
+              ? const Center(child: CircularProgressIndicator())
+              : _loadFailed
+              ? Center(
+                  child: Column(
+                    children: [
+                      const Text('Could not load the menu.'),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _loadingProducts = true;
+                            _loadFailed = false;
+                          });
+                          _loadProducts();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : filteredProducts.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -332,8 +373,8 @@ class _HomePageState extends State<HomePage> {
               // Product Image
               AspectRatio(
                 aspectRatio: 1,
-                child: Image.asset(
-                  product.photo,
+                child: Image(
+                  image: foodPhotoProvider(product.photo),
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const ColoredBox(
@@ -385,7 +426,7 @@ class _HomePageState extends State<HomePage> {
             bottom: 10,
             right: 10,
             child: GestureDetector(
-              onTap: () {
+              onTap: () async {
                 // Add to cart functionality
                 final cartItem = CartItem(
                   itemId: product.id,
@@ -395,12 +436,21 @@ class _HomePageState extends State<HomePage> {
                   quantity: 1,
                 );
                 widget.cartManager.addItem(cartItem);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${product.name} added to cart!'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
+                try {
+                  await widget.cartManager.saved;
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${product.name} added to cart!'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not save your cart.')),
+                  );
+                }
               },
               child: Container(
                 width: 35,

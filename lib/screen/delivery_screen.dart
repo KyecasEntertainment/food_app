@@ -87,11 +87,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
 
     Future.delayed(Duration(seconds: randomSeconds), () async {
       if (mounted) {
-        // Clear cart data
-        widget.cartManager.clearCart();
-        await widget.cartManager.saved;
-        if (!mounted) return;
-
         // Replace entire navigation stack with a fresh MainScreen
         // (ensures the app lands on the Menu/Home tab)
         Navigator.of(context).pushAndRemoveUntil(
