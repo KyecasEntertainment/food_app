@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:food_app/app_colors.dart';
 import 'package:food_app/avatar_image.dart';
-import 'package:food_app/address_input.dart';
 import 'package:food_app/custom_top_bar.dart';
-import 'package:food_app/database/address.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/supabase_settings.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/screen/address_list_sheet.dart';
+import 'package:food_app/screen/order_history_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -52,7 +52,6 @@ class _ProfilePageState extends State<ProfilePage> {
     String? first,
     String? last,
     String? newEmail,
-    Address? address,
   }) async {
     final account = _account;
     if (account == null) return false;
@@ -61,7 +60,6 @@ class _ProfilePageState extends State<ProfilePage> {
         firstName: first ?? firstName,
         lastName: last ?? lastName,
         email: newEmail ?? email,
-        address: address ?? DeliveryAddress.structured.value,
       );
       await activeRepository.saveAccount(updated);
       if (mounted) setState(() => _account = updated);
@@ -108,7 +106,8 @@ class _ProfilePageState extends State<ProfilePage> {
       if (bytes.length > 5 * 1024 * 1024) {
         throw StateError('Avatar must be 5 MB or smaller');
       }
-      uploadedPath = '${account.id}/${DateTime.now().microsecondsSinceEpoch}.$extension';
+      uploadedPath =
+          '${account.id}/${DateTime.now().microsecondsSinceEpoch}.$extension';
       await storage.uploadBinary(
         uploadedPath,
         bytes,
@@ -141,19 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _editAddress() async {
-    final address = await showModalBottomSheet<Address>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) =>
-          _AddressSheet(initialAddress: DeliveryAddress.structured.value),
-    );
-    if (address == null || !mounted) return;
-    if (await _saveProfile(address: address)) {
-      DeliveryAddress.setAddress(address);
-    }
-  }
+  Future<void> _editAddress() => showAddressList(context);
 
   Future<void> _editField({
     required String label,
@@ -184,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (SupabaseSettings.isConfigured) {
         await Supabase.instance.client.auth.signOut();
       }
-      DeliveryAddress.setAddress(Address.empty);
+      DeliveryAddress.clear();
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
@@ -305,6 +292,21 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(height: 28),
+            if (_account != null) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => OrderHistoryPage(accountId: _account!.id),
+                    ),
+                  ),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: const Text('My orders and receipts'),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -515,62 +517,6 @@ class _EditFieldSheet extends StatefulWidget {
 
   @override
   State<_EditFieldSheet> createState() => _EditFieldSheetState();
-}
-
-class _AddressSheet extends StatefulWidget {
-  const _AddressSheet({required this.initialAddress});
-  final Address initialAddress;
-
-  @override
-  State<_AddressSheet> createState() => _AddressSheetState();
-}
-
-class _AddressSheetState extends State<_AddressSheet> {
-  final _formKey = GlobalKey<FormState>();
-  late Address _address = widget.initialAddress;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(
-      20,
-      20,
-      20,
-      MediaQuery.viewInsetsOf(context).bottom + 20,
-    ),
-    child: SingleChildScrollView(
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Delivery address',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            AddressInput(
-              initialAddress: widget.initialAddress,
-              requireSubdivision: SupabaseSettings.isConfigured,
-              requirePin: SupabaseSettings.isConfigured,
-              showMapPicker: true,
-              onChanged: (address) => _address = address,
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    Navigator.of(context).pop(_address);
-                  }
-                },
-                child: const Text('Save address'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 class _EditFieldSheetState extends State<_EditFieldSheet> {

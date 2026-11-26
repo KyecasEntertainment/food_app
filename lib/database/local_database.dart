@@ -16,6 +16,17 @@ abstract class FoodRepository {
   Future<void> saveCart(String accountId, List<CartItem> items);
   Future<FoodOrder> saveOrder(FoodOrder order);
   Future<List<FoodOrder>> getOrders(String accountId);
+  Future<FoodOrder> updateOrderStatus(
+    String accountId,
+    String orderId,
+    OrderStatus status,
+  );
+  Future<FoodOrder> rateOrder(
+    String accountId,
+    String orderId, {
+    required int driverRating,
+    required int shopRating,
+  });
 }
 
 class LocalDatabase implements FoodRepository {
@@ -97,6 +108,67 @@ class LocalDatabase implements FoodRepository {
         )
         .toList();
   }
+
+  Future<FoodOrder> _replaceOrder(
+    String accountId,
+    String orderId,
+    FoodOrder Function(FoodOrder) change,
+  ) async {
+    final orders = await getOrders(accountId);
+    final index = orders.indexWhere((order) => order.id == orderId);
+    if (index < 0) throw StateError('Order not found');
+    final updated = change(orders[index]);
+    orders[index] = updated;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '$_orderPrefix$accountId',
+      jsonEncode(orders.map((order) => order.toJson()).toList()),
+    );
+    return updated;
+  }
+
+  @override
+  Future<FoodOrder> updateOrderStatus(
+    String accountId,
+    String orderId,
+    OrderStatus status,
+  ) => _replaceOrder(accountId, orderId, (order) {
+    if (status == OrderStatus.delivering &&
+        order.status == OrderStatus.preparing &&
+        DateTime.now().toUtc().isBefore(
+          order.createdAt.add(Duration(seconds: order.preparingSeconds)),
+        )) {
+      throw StateError('The shop is still preparing this order');
+    }
+    if ((status == OrderStatus.delivering &&
+            order.status != OrderStatus.preparing) ||
+        (status == OrderStatus.delivered &&
+            order.status != OrderStatus.delivering) ||
+        status == OrderStatus.preparing) {
+      throw StateError('Invalid order status transition');
+    }
+    return order.copyWith(
+      status: status,
+      deliveredAt: status == OrderStatus.delivered
+          ? DateTime.now().toUtc()
+          : null,
+    );
+  });
+
+  @override
+  Future<FoodOrder> rateOrder(
+    String accountId,
+    String orderId, {
+    required int driverRating,
+    required int shopRating,
+  }) => _replaceOrder(accountId, orderId, (order) {
+    if (order.status != OrderStatus.delivered ||
+        order.driverRating != null ||
+        order.shopRating != null) {
+      throw StateError('This order cannot be rated');
+    }
+    return order.copyWith(driverRating: driverRating, shopRating: shopRating);
+  });
 }
 
 /// Set this once during app startup when a Supabase adapter is available.

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/app_colors.dart';
-import 'package:food_app/address_input.dart';
 import 'package:food_app/custom_top_bar.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/address.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/order.dart';
-import 'package:food_app/database/supabase_settings.dart';
 import 'package:food_app/database/payment_modes.dart';
 import 'package:food_app/database/user_accounts.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/screen/delivery_screen.dart';
+import 'package:food_app/screen/address_list_sheet.dart';
 
 class CheckoutPage extends StatefulWidget {
   final UserAccounts? loggedInUser;
@@ -35,7 +34,6 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final _addressFormKey = GlobalKey<FormState>();
   late Address _address;
   bool _savingOrder = false;
   bool _orderPlaced = false;
@@ -63,30 +61,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Future<void> _placeOrder() async {
     final accountId = widget.loggedInUser?.id;
     if (accountId == null) return;
-    if (_savingOrder ||
-        _orderPlaced ||
-        !(_addressFormKey.currentState?.validate() ?? false)) {
+    if (_savingOrder || _orderPlaced) return;
+    _address = DeliveryAddress.structured.value;
+    if (_pendingOrder != null &&
+        !identical(_pendingOrder!.deliveryAddress, _address)) {
+      _pendingOrder = null;
+    }
+    if (!_address.isComplete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Set a delivery address before placing an order.'),
+        ),
+      );
       return;
     }
     if (_pendingOrder == null && widget.cartManager.items.isEmpty) return;
     setState(() => _savingOrder = true);
     try {
-      final draft = _pendingOrder ?? FoodOrder.fromCart(
-        cartItems: widget.cartManager.items,
-        deliveryAddress: _address,
-        shippingPrice: widget.deliveryFee,
-        tipPrice: tipAmount,
-        accountId: accountId,
-      );
+      final draft =
+          _pendingOrder ??
+          FoodOrder.fromCart(
+            cartItems: widget.cartManager.items,
+            deliveryAddress: _address,
+            shippingPrice: widget.deliveryFee,
+            tipPrice: tipAmount,
+            accountId: accountId,
+            paymentMethod: selectedPayment,
+          );
       _pendingOrder = draft;
-      if (widget.loggedInUser != null) {
-        final account = await activeRepository.getAccount(
-          widget.loggedInUser!.id,
-        );
-        await activeRepository.saveAccount(
-          (account ?? widget.loggedInUser!).copyWith(address: _address),
-        );
-      }
       final order = await activeRepository.saveOrder(draft);
       widget.cartManager.clearCart();
       await widget.cartManager.saved;
@@ -95,20 +97,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (context) => OrderTrackingPage(
-            subtotal: order.items.fold<double>(
-              0,
-              (sum, line) => sum + line.subtotal,
-            ),
-            deliveryFee: order.shippingPrice,
-            totalAmount: order.totalPrice,
-            totalItems: order.items.fold<int>(
-              0,
-              (sum, line) => sum + line.quantity,
-            ),
-            cartManager: widget.cartManager,
-            loggedInUser: widget.loggedInUser,
-          ),
+          builder: (context) => OrderTrackingPage(order: order),
         ),
       );
     } catch (_) {
@@ -290,14 +279,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return _sectionCard(
       icon: Icons.location_on_outlined,
       title: 'Delivery address',
-      child: Form(
-        key: _addressFormKey,
-        child: AddressInput(
-          initialAddress: _address,
-          requireSubdivision: SupabaseSettings.isConfigured,
-          requirePin: SupabaseSettings.isConfigured,
-          showMapPicker: true,
-          onChanged: (address) => _address = address,
+      child: ValueListenableBuilder<String>(
+        valueListenable: DeliveryAddress.current,
+        builder: (context, address, _) => ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(address.isEmpty ? '+ Set your address' : address),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => showAddressList(context),
         ),
       ),
     );

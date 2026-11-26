@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/user_accounts.dart';
-import 'package:food_app/delivery_address.dart';
-import 'package:food_app/main.dart';
 import 'package:food_app/app_colors.dart';
 import 'package:food_app/screen/signin_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -116,18 +114,12 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
 
         if (matchedUser != null) {
-          DeliveryAddress.setAddress(matchedUser.address);
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
-              // Replace the login route with MainScreen passing the logged-in user
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => MainScreen(loggedInUser: matchedUser),
-                ),
-              );
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
             }
           });
         } else {

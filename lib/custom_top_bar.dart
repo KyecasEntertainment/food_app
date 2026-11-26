@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:food_app/app_colors.dart';
 import 'package:food_app/delivery_address.dart';
 import 'package:food_app/database/cart_manager.dart';
+import 'package:food_app/screen/address_list_sheet.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -26,30 +27,35 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       automaticallyImplyLeading: showBackButton,
       title: showAddress
-          ? Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: DeliveryAddress.current,
-                    builder: (context, address, _) => Text(
-                      address.trim().isEmpty ? 'Add delivery address' : address,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+          ? InkWell(
+              onTap: () => showAddressList(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: DeliveryAddress.current,
+                      builder: (context, address, _) => Text(
+                        address.trim().isEmpty ? '+ Set your address' : address,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const Icon(Icons.keyboard_arrow_down),
+                ],
+              ),
             )
           : Text(
               title!,

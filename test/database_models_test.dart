@@ -26,6 +26,7 @@ void main() {
   test('address and account use Supabase-ready field names', () {
     final address = Address.fromJson(deliveryAddress.toJson());
     expect(address.displayText, 'Lot 12, Pine Village, Baybay, Los Baños');
+    expect(address.toJson()['formatted_address'], address.displayText);
     expect(address.latitude, 14.166);
     expect(address.isComplete, isTrue);
 
@@ -37,6 +38,28 @@ void main() {
     expect(decoded.address.longitude, 121.244);
     expect(account.toJson(), isNot(contains('password')));
   });
+
+  test(
+    'Google address and pin complete a profile without structured parts',
+    () {
+      const address = Address(
+        formattedAddress: '123 Sample Street, Manila, Philippines',
+        unitHouseLotNumber: '',
+        subdivisionVillage: '',
+        barangay: '',
+        municipality: '',
+        latitude: 14.5995,
+        longitude: 120.9842,
+      );
+      expect(address.isComplete, isTrue);
+      expect(
+        Address.fromJson(address.toJson()).displayText,
+        address.displayText,
+      );
+      expect(Address.empty.isComplete, isFalse);
+      expect(address.toJson()['formatted_address'], address.displayText);
+    },
+  );
 
   test('food item keeps its ID, photo, name and price across JSON', () {
     final item = FoodItem.fromJson(products.first.toJson());
@@ -62,6 +85,7 @@ void main() {
       shippingPrice: 45,
       tipPrice: 10,
       accountId: accounts.first.id,
+      paymentMethod: 'COD',
     );
     final decoded = FoodOrder.fromJson(order.toJson());
     expect(
@@ -74,9 +98,64 @@ void main() {
     );
     expect(decoded.items.map((item) => item.itemId), [2, 5]);
     expect(decoded.items.map((item) => item.quantity), [2, 1]);
+    expect(decoded.items.map((item) => item.name), ['Pizza', 'Burger']);
     expect(decoded.shippingPrice, 45);
     expect(decoded.totalPrice, 605);
     expect(decoded.deliveryAddress.barangay, 'Baybay');
+    expect(decoded.preparingSeconds, inInclusiveRange(10, 30));
+    expect(decoded.paymentMethod, 'COD');
+  });
+
+  test('local order progress and both ratings survive a reload', () async {
+    final db = LocalDatabase.instance;
+    final draft = FoodOrder.fromCart(
+      cartItems: [
+        CartItem(itemId: 2, name: 'Pizza', photo: '', unitPrice: 200),
+      ],
+      deliveryAddress: deliveryAddress,
+      shippingPrice: 50,
+      accountId: accounts.first.id,
+    );
+    final json = draft.toJson()
+      ..['created_at'] = DateTime.now()
+          .toUtc()
+          .subtract(const Duration(minutes: 1))
+          .toIso8601String();
+    final order = FoodOrder.fromJson(json);
+    await db.saveOrder(order);
+    final delivering = await db.updateOrderStatus(
+      order.accountId,
+      order.id,
+      OrderStatus.delivering,
+    );
+    expect(delivering.status, OrderStatus.delivering);
+    final delivered = await db.updateOrderStatus(
+      order.accountId,
+      order.id,
+      OrderStatus.delivered,
+    );
+    expect(delivered.deliveredAt, isNotNull);
+    final rated = await db.rateOrder(
+      order.accountId,
+      order.id,
+      driverRating: 5,
+      shopRating: 4,
+    );
+    expect(rated.driverRating, 5);
+    expect(rated.shopRating, 4);
+    final restored = (await db.getOrders(order.accountId)).single;
+    expect(restored.status, OrderStatus.delivered);
+    expect(restored.items.single.name, 'Pizza');
+    expect(restored.shopRating, 4);
+    await expectLater(
+      db.rateOrder(
+        order.accountId,
+        order.id,
+        driverRating: 1,
+        shopRating: 1,
+      ),
+      throwsStateError,
+    );
   });
 
   test(

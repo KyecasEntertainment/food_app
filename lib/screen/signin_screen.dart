@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:food_app/address_input.dart';
 import 'package:food_app/app_colors.dart';
-import 'package:food_app/database/address.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/supabase_settings.dart';
-import 'package:food_app/delivery_address.dart';
-import 'package:food_app/main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Account creation. Passwords go to Supabase Auth, never to profile storage.
@@ -22,7 +18,7 @@ class _SigninScreenState extends State<SigninScreen> {
   final _lastName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  Address _address = Address.empty;
+  final _confirmPassword = TextEditingController();
   bool _passwordVisible = false;
   bool _submitting = false;
 
@@ -32,6 +28,7 @@ class _SigninScreenState extends State<SigninScreen> {
     _lastName.dispose();
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
     super.dispose();
   }
 
@@ -48,6 +45,9 @@ class _SigninScreenState extends State<SigninScreen> {
 
   String? _validatePassword(String? value) =>
       (value?.length ?? 0) < 8 ? 'Use at least 8 characters' : null;
+
+  String? _validateConfirmation(String? value) =>
+      value != _password.text ? 'Passwords do not match' : null;
 
   Future<void> _createAccount() async {
     if (_submitting || !(_formKey.currentState?.validate() ?? false)) return;
@@ -70,7 +70,6 @@ class _SigninScreenState extends State<SigninScreen> {
       final profileData = {
         'first_name': _firstName.text.trim(),
         'last_name': _lastName.text.trim(),
-        ..._address.toJson(),
       };
       final result = await client.auth.signUp(
         email: email,
@@ -101,19 +100,12 @@ class _SigninScreenState extends State<SigninScreen> {
           'email': email,
           'first_name': _firstName.text.trim(),
           'last_name': _lastName.text.trim(),
-          ..._address.toJson(),
         });
         account = await activeRepository.getAccount(user.id);
       }
       if (account == null) throw StateError('Profile was not created');
-      DeliveryAddress.setAddress(account.address);
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (_) => MainScreen(loggedInUser: account),
-        ),
-        (_) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
     } on AuthException catch (error) {
       if (mounted) _showError(error.message);
     } catch (_) {
@@ -191,18 +183,11 @@ class _SigninScreenState extends State<SigninScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Delivery address',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                AddressInput(
-                  initialAddress: Address.empty,
-                  requireSubdivision: true,
-                  requirePin: true,
-                  showMapPicker: true,
-                  onChanged: (address) => _address = address,
+                _field(
+                  'Confirm password',
+                  _confirmPassword,
+                  validator: _validateConfirmation,
+                  obscure: !_passwordVisible,
                 ),
                 const SizedBox(height: 12),
                 SizedBox(

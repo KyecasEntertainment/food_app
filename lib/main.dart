@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/app_navigation.dart';
 import 'package:food_app/screen/menu_screen.dart';
 import 'package:food_app/screen/search_screen.dart';
 import 'package:food_app/screen/cart_screen.dart';
@@ -6,11 +7,13 @@ import 'package:food_app/screen/profile_screen.dart';
 import 'package:food_app/bottom_nav_bar.dart';
 import 'package:food_app/screen/login_screen.dart';
 import 'package:food_app/database/user_accounts.dart';
+import 'package:food_app/database/saved_address_repository.dart';
 import 'package:food_app/database/cart_manager.dart';
 import 'package:food_app/database/local_database.dart';
 import 'package:food_app/database/supabase_food_repository.dart';
 import 'package:food_app/database/supabase_settings.dart';
 import 'package:food_app/app_colors.dart';
+import 'package:food_app/delivery_address.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -131,7 +134,15 @@ class _AuthGateState extends State<_AuthGate> {
 
   Future<UserAccounts?> _loadProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
-    return user == null ? null : activeRepository.getAccount(user.id);
+    final account = user == null
+        ? null
+        : await activeRepository.getAccount(user.id);
+    if (account == null) {
+      DeliveryAddress.clear();
+    } else {
+      DeliveryAddress.replaceSaved(await SavedAddressRepository.load());
+    }
+    return account;
   }
 
   @override
@@ -158,7 +169,8 @@ class _AuthGateState extends State<_AuthGate> {
         );
       }
       final account = snapshot.data;
-      if (account == null && Supabase.instance.client.auth.currentUser != null) {
+      if (account == null &&
+          Supabase.instance.client.auth.currentUser != null) {
         return Scaffold(
           body: Center(
             child: Column(
@@ -189,9 +201,8 @@ class _AuthGateState extends State<_AuthGate> {
           ),
         );
       }
-      return account == null
-          ? const LoginScreen()
-          : MainScreen(loggedInUser: account);
+      if (account == null) return const LoginScreen();
+      return MainScreen(loggedInUser: account);
     },
   );
 }
@@ -226,8 +237,17 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    AppNavigation.showHome();
+    AppNavigation.selectedTab.addListener(_syncSelectedTab);
     _loadCart();
     _buildPages();
+  }
+
+  void _syncSelectedTab() {
+    final selectedTab = AppNavigation.selectedTab.value;
+    if (mounted && selectedTab != _selectedIndex) {
+      setState(() => _selectedIndex = selectedTab);
+    }
   }
 
   Future<void> _loadCart() async {
@@ -267,13 +287,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    AppNavigation.selectTab(index);
   }
 
   @override
   void dispose() {
+    AppNavigation.selectedTab.removeListener(_syncSelectedTab);
     _cartManager.dispose();
     super.dispose();
   }

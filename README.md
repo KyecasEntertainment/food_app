@@ -9,8 +9,8 @@ provide accounts, catalog, carts, orders, food photos, and user avatars.
 
 | Record | Fields |
 | --- | --- |
-| Account | UUID, first name, last name, email, avatar, structured address |
-| Address | Unit/house/lot number, subdivision/village, barangay, municipality, optional latitude and longitude |
+| Account | UUID, first name, last name, email, avatar; address is optional |
+| Saved address | Name, map pin, unit/building, street, village, barangay, city, province; one can be selected |
 | Food item | Numeric ID, photo path, name, price, category |
 | Cart item | Food item ID, quantity, displayed name/photo/price |
 | Order | UUID, account ID, order lines, delivery address snapshot, shipping price, tip price, total price, creation time |
@@ -30,10 +30,12 @@ The local Supabase backend is in the sibling `food_app_supabase` directory. It
 contains the canonical Postgres migrations, row level security policies, catalog
 seed, Storage buckets, image upload script, and startup instructions. See
 `supabase/README.md` for connection steps.
-The account creation form requires first and last name, email, password, the
-four address parts, and a latitude/longitude pin. The Google Maps picker is
-available on Android and iOS after an API key is configured; coordinate entry
-remains available for development and web.
+The account creation form requires first name, last name, email, password, and
+password confirmation. Users can browse without an address; checkout requires
+a selected saved address with a pin and all address fields. Google Maps is
+available on Android and iOS when its API key is configured.
+The app calls the local `reverse-geocode` Edge Function to show Google's
+suggested location. Users enter and confirm the required address fields.
 
 ## Checks
 

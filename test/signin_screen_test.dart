@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:food_app/screen/signin_screen.dart';
 
 void main() {
-  testWidgets('account creation collects all profile fields and a map pin', (
+  testWidgets('account creation collects five fields and confirms password', (
     tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: SigninScreen()));
@@ -14,12 +14,7 @@ void main() {
       'Last name': 'Reyes',
       'Email': 'ana@example.com',
       'Password': 'strongpass123',
-      'Unit / House / Lot number': 'Lot 12',
-      'Subdivision / Village': 'Pine Village',
-      'Barangay': 'Baybay',
-      'Municipality': 'Los Baños',
-      'Map pin latitude': '14.166',
-      'Map pin longitude': '121.244',
+      'Confirm password': 'different',
     };
     for (final entry in fields.entries) {
       final field = find.widgetWithText(TextFormField, entry.key);
@@ -38,6 +33,23 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
+    await tester.tap(createButton);
+    await tester.pump();
+    expect(find.text('Passwords do not match'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.widgetWithText(TextFormField, 'Confirm password'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Confirm password'),
+      'strongpass123',
+    );
+    await tester.scrollUntilVisible(
+      createButton,
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(createButton);
     await tester.pump();
     expect(

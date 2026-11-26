@@ -76,46 +76,58 @@ class SupabaseFoodRepository implements FoodRepository {
         .select('item_id,quantity,food_items(name,photo,price)')
         .eq('account_id', accountId)
         .order('item_id');
-    return rows.map((row) {
-      final food = Map<String, dynamic>.from(row['food_items'] as Map);
-      return CartItem(
-        itemId: row['item_id'] as int,
-        quantity: row['quantity'] as int,
-        name: food['name'] as String,
-        photo: food['photo'] as String,
-        unitPrice: (food['price'] as num).toDouble(),
-      );
-    }).toList(growable: false);
+    return rows
+        .map((row) {
+          final food = Map<String, dynamic>.from(row['food_items'] as Map);
+          return CartItem(
+            itemId: row['item_id'] as int,
+            quantity: row['quantity'] as int,
+            name: food['name'] as String,
+            photo: food['photo'] as String,
+            unitPrice: (food['price'] as num).toDouble(),
+          );
+        })
+        .toList(growable: false);
   }
 
   @override
   Future<void> saveCart(String accountId, List<CartItem> items) async {
     _requireAccount(accountId);
-    await _client.rpc('replace_cart', params: {
-      'p_items': items
-          .map((item) => {'item_id': item.itemId, 'quantity': item.quantity})
-          .toList(),
-    });
+    await _client.rpc(
+      'replace_cart',
+      params: {
+        'p_items': items
+            .map((item) => {'item_id': item.itemId, 'quantity': item.quantity})
+            .toList(),
+      },
+    );
   }
 
   @override
   Future<FoodOrder> saveOrder(FoodOrder order) async {
     _requireAccount(order.accountId);
-    final id = await _client.rpc('place_order', params: {
-      'p_request_id': order.id,
-      'p_items': order.items
-          .map((line) => {'item_id': line.itemId, 'quantity': line.quantity})
-          .toList(),
-      'p_address': order.deliveryAddress.toJson(),
-      'p_tip': order.tipPrice,
-    });
+    final id = await _client.rpc(
+      'place_order',
+      params: {
+        'p_request_id': order.id,
+        'p_items': order.items
+            .map((line) => {'item_id': line.itemId, 'quantity': line.quantity})
+            .toList(),
+        'p_address': order.deliveryAddress.toJson(),
+        'p_tip': order.tipPrice,
+      },
+    );
+    await _client.rpc(
+      'set_order_payment_method',
+      params: {'p_order_id': id, 'p_payment_method': order.paymentMethod},
+    );
     return _getOrder(id as String);
   }
 
   Future<FoodOrder> _getOrder(String id) async {
     final row = await _client
         .from('orders')
-        .select('*,order_items(item_id,quantity,unit_price)')
+        .select('*,order_items(item_id,item_name,quantity,unit_price)')
         .eq('id', id)
         .single();
     return _mapOrder(row);
@@ -126,22 +138,65 @@ class SupabaseFoodRepository implements FoodRepository {
     _requireAccount(accountId);
     final rows = await _client
         .from('orders')
-        .select('*,order_items(item_id,quantity,unit_price)')
+        .select('*,order_items(item_id,item_name,quantity,unit_price)')
         .eq('account_id', accountId)
         .order('created_at', ascending: false);
     return rows.map(_mapOrder).toList(growable: false);
+  }
+
+  @override
+  Future<FoodOrder> updateOrderStatus(
+    String accountId,
+    String orderId,
+    OrderStatus status,
+  ) async {
+    _requireAccount(accountId);
+    await _client.rpc(
+      'advance_order_status',
+      params: {'p_order_id': orderId, 'p_status': status.name},
+    );
+    return _getOrder(orderId);
+  }
+
+  @override
+  Future<FoodOrder> rateOrder(
+    String accountId,
+    String orderId, {
+    required int driverRating,
+    required int shopRating,
+  }) async {
+    _requireAccount(accountId);
+    await _client.rpc(
+      'rate_order',
+      params: {
+        'p_order_id': orderId,
+        'p_driver_rating': driverRating,
+        'p_shop_rating': shopRating,
+      },
+    );
+    return _getOrder(orderId);
   }
 
   FoodOrder _mapOrder(Map<String, dynamic> row) => FoodOrder(
     id: row['id'] as String,
     accountId: row['account_id'] as String,
     items: (row['order_items'] as List)
-        .map((line) => OrderLine.fromJson(Map<String, dynamic>.from(line as Map)))
+        .map(
+          (line) => OrderLine.fromJson(Map<String, dynamic>.from(line as Map)),
+        )
         .toList(growable: false),
     deliveryAddress: Address.fromJson(row),
     shippingPrice: (row['shipping_price'] as num).toDouble(),
     tipPrice: (row['tip_price'] as num).toDouble(),
     totalPrice: (row['total_price'] as num).toDouble(),
     createdAt: DateTime.parse(row['created_at'] as String),
+    status: OrderStatus.values.byName(row['status'] as String),
+    preparingSeconds: row['preparing_seconds'] as int,
+    deliveredAt: row['delivered_at'] == null
+        ? null
+        : DateTime.parse(row['delivered_at'] as String),
+    driverRating: row['driver_rating'] as int?,
+    shopRating: row['shop_rating'] as int?,
+    paymentMethod: row['payment_method'] as String? ?? '',
   );
 }

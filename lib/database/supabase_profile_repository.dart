@@ -70,4 +70,24 @@ class SupabaseProfileRepository implements FoodRepository {
   @override
   Future<List<FoodOrder>> getOrders(String accountId) =>
       _local.getOrders(accountId);
+
+  @override
+  Future<FoodOrder> updateOrderStatus(
+    String accountId,
+    String orderId,
+    OrderStatus status,
+  ) => _local.updateOrderStatus(accountId, orderId, status);
+
+  @override
+  Future<FoodOrder> rateOrder(
+    String accountId,
+    String orderId, {
+    required int driverRating,
+    required int shopRating,
+  }) => _local.rateOrder(
+    accountId,
+    orderId,
+    driverRating: driverRating,
+    shopRating: shopRating,
+  );
 }

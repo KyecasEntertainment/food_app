@@ -8,8 +8,6 @@ class MapPinPicker extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
 
-  static const enabled = bool.fromEnvironment('GOOGLE_MAPS_ENABLED');
-
   static bool get supportedPlatform =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
@@ -20,6 +18,8 @@ class MapPinPicker extends StatefulWidget {
 }
 
 class _MapPinPickerState extends State<MapPinPicker> {
+  late bool _hasPin =
+      widget.initialLatitude != null && widget.initialLongitude != null;
   late LatLng _selected = LatLng(
     widget.initialLatitude ?? 14.5995,
     widget.initialLongitude ?? 120.9842,
@@ -33,7 +33,10 @@ class _MapPinPickerState extends State<MapPinPicker> {
         Expanded(
           child: GoogleMap(
             initialCameraPosition: CameraPosition(target: _selected, zoom: 15),
-            onTap: (position) => setState(() => _selected = position),
+            onTap: (position) => setState(() {
+              _selected = position;
+              _hasPin = true;
+            }),
             markers: {
               Marker(markerId: const MarkerId('delivery'), position: _selected),
             },
@@ -53,7 +56,9 @@ class _MapPinPickerState extends State<MapPinPicker> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(_selected),
+                    onPressed: _hasPin
+                        ? () => Navigator.of(context).pop(_selected)
+                        : null,
                     child: const Text('Use this pin'),
                   ),
                 ),
