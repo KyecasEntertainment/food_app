@@ -64,7 +64,7 @@ class SupabaseFoodRepository implements FoodRepository {
     final rows = await _client
         .from('food_items')
         .select('id,photo,name,price,category')
-        .order('id');
+        .order('id', ascending: true);
     return rows.map(FoodItem.fromJson).toList(growable: false);
   }
 
